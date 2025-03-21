@@ -1,14 +1,48 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite App</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <canvas class="threejs"></canvas>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Mode Selector</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .mode-button {
+            padding: 15px 25px;
+            font-size: 18px;
+            border: none;
+            background-color: #a2d2ff;
+            color: #333;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+        .mode-button:hover {
+            background-color: #ffafcc;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Select a Game Mode</h1>
+    <div class="container">
+        <button class="mode-button" onclick="location.href='src/html/sandbox.html'">Bouncy Balls</button>
+        <button class="mode-button" onclick="location.href='src/modes/testMode.html'">Test Mode</button>
+        <button class="mode-button" onclick="location.href='src/modes/anotherMode.html'">Another Mode</button>
+    </div>
+
+</body>
 </html>

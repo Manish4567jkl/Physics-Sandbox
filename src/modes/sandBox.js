@@ -3,7 +3,7 @@ import * as CANNON from "cannon-es";
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const scene = new THREE.Scene();
-
+scene.background = new THREE.Color("#A7C7E7");
 const camera = new THREE.PerspectiveCamera(
     45, 
     window.innerWidth / window.innerHeight, 
@@ -38,7 +38,7 @@ world.addBody(groundBody);
 
 const groundMesh = new THREE.Mesh(
     new THREE.PlaneGeometry(40, 40),
-    new THREE.MeshStandardMaterial({ color: "#a0c4ff", side: THREE.DoubleSide })
+    new THREE.MeshStandardMaterial({ color: "#D08C9B", side: THREE.DoubleSide })
 );
 groundMesh.rotation.x = -Math.PI / 2;
 groundMesh.position.y = -0.5;

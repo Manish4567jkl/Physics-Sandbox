@@ -2,6 +2,10 @@ import * as THREE from "three";
 import * as CANNON from "cannon-es";
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+
+
+
+
 const scene = new THREE.Scene();
 scene.background = new THREE.Color("#A7C7E7");
 const camera = new THREE.PerspectiveCamera(
@@ -22,9 +26,20 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 const control = new OrbitControls(camera, canvas);
 control.update();
-
 const world = new CANNON.World();
-world.gravity.set(0, -9.81, 0);
+world.gravity.set(0, -9.81, 0); 
+
+
+const slider = document.getElementById("gravity-slider");
+const display = document.getElementById("gravity-value");
+
+
+slider.addEventListener("input", () => {
+    display.textContent = `${slider.value} m/s²`;
+    world.gravity.set(0, slider.value, 0);
+});
+
+
 
 const groundMaterial = new CANNON.Material({ friction: 0.5, restitution: 0.8 });
 const groundBody = new CANNON.Body({
@@ -37,7 +52,7 @@ groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 world.addBody(groundBody);
 
 const groundMesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(40, 40),
+    new THREE.PlaneGeometry(60, 60),
     new THREE.MeshStandardMaterial({ color: "#D08C9B", side: THREE.DoubleSide })
 );
 groundMesh.rotation.x = -Math.PI / 2;
@@ -45,7 +60,7 @@ groundMesh.position.y = -0.5;
 groundMesh.receiveShadow = true;
 scene.add(groundMesh);
 
-const gridHelper = new THREE.GridHelper(40, 40);
+const gridHelper = new THREE.GridHelper(60, 60);
 scene.add(gridHelper);
 
 const cubeMaterial = new CANNON.Material({ friction: 0.1, restitution: 1 });

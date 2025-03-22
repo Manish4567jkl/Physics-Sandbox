@@ -1,171 +1,113 @@
-import * as THREE from "three";
-import * as CANNON from "cannon-es";
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+   // Matter.js Engine Setup
+   const { Engine, Render, World, Bodies, Runner } = Matter;
+   const engine = Engine.create();
+   const world = engine.world;
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color("#A7C7E7");
-const camera = new THREE.PerspectiveCamera(
-    45, 
-    window.innerWidth / window.innerHeight, 
-    0.1, 
-    100 
-);
-camera.position.set(5, 10, 10);
-camera.lookAt(0, 0, 0);
+   const render = Render.create({
+       element: document.body,
+       engine: engine,
+       options: {
+           width: window.innerWidth,
+           height: window.innerHeight,
+           wireframes: false,
+           background: 'transparent'
+       }
+   });
 
-const canvas = document.querySelector("canvas.threejs");
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+   Render.run(render);
+   const runner = Runner.create();
+   Runner.run(runner, engine);
 
-const control = new OrbitControls(camera, canvas);
-control.update();
+   // Create bouncing balls with different sizes
+   function spawnBall(x, y) {
+       const radius = Math.random() * 10 + 10; // Random size between 10-20px
+       let ball = Bodies.circle(x, y, radius, {
+           restitution: 0.7,
+           friction: 0.05,
+           density: 0.002,
+           render: {
+               fillStyle: ['#FFB6C1', '#A1C4FD', '#FFD700', '#98FB98'][Math.floor(Math.random() * 4)]
+           }
+       });
+       World.add(world, ball);
+   }
 
-const world = new CANNON.World();
-world.gravity.set(0, -9.81, 0);
+   // Keep clouds
+   function createClouds(count) {
+       const cloudContainer = document.querySelector(".clouds");
+       for (let i = 0; i < count; i++) {
+           let cloud = document.createElement("div");
+           cloud.classList.add("cloud");
+           cloud.style.top = Math.random() * 80 + "%";
+           cloud.style.left = Math.random() * -150 + "px";
+           cloud.style.animationDuration = (Math.random() * 20 + 20) + "s";
+           cloud.style.transform = `scale(${Math.random() * 0.8 + 0.6})`;
+           cloudContainer.appendChild(cloud);
+       }
+   }
+   createClouds(8);
 
-const groundMaterial = new CANNON.Material({ friction: 0.5, restitution: 0.8 });
-const groundBody = new CANNON.Body({
-    shape: new CANNON.Plane(),
-    mass: 0,
-    material: groundMaterial
-});
-groundBody.position.set(0, -0.5, 0);
-groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
-world.addBody(groundBody);
+   // **Smooth Background Transition (Day to Night)**
+   let time = 0;
+   function updateBackground() {
+       time += 0.0015;  // Smoother transition
 
-const groundMesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(40, 40),
-    new THREE.MeshStandardMaterial({ color: "#D08C9B", side: THREE.DoubleSide })
-);
-groundMesh.rotation.x = -Math.PI / 2;
-groundMesh.position.y = -0.5;
-groundMesh.receiveShadow = true;
-scene.add(groundMesh);
+       const r = Math.floor(120 + 80 * Math.sin(time));
+       const g = Math.floor(180 + 50 * Math.sin(time + 2));
+       const b = Math.floor(250 + 5 * Math.sin(time + 4));
 
-const gridHelper = new THREE.GridHelper(40, 40);
-scene.add(gridHelper);
+       document.body.style.background = `rgb(${r}, ${g}, ${b})`;
 
-const cubeMaterial = new CANNON.Material({ friction: 0.1, restitution: 1 });
-const cubeBody = new CANNON.Body({
-    mass: 1,
-    shape: new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5)),
-    position: new CANNON.Vec3(0, 8, 0),
-    material: cubeMaterial
-});
-world.addBody(cubeBody);
+       requestAnimationFrame(updateBackground);
+   }
+   updateBackground();
 
-const cubeMesh = new THREE.Mesh(
-    new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshStandardMaterial({ color: "#ffafcc" })
-);
-cubeMesh.castShadow = true;
-scene.add(cubeMesh);
+   // **Platforms with trampoline effects and random placements**
+   const platformSettings = { isStatic: true, render: { fillStyle: '#ffffff88' } };
+   const bouncyPlatformSettings = { isStatic: true, restitution: 50.2, render: { fillStyle: '#ffcc88' } };
 
-const radius = 0.52;
-const sphereMaterial = new CANNON.Material({ friction: 0.1, restitution: 1 });
-const sphereBody = new CANNON.Body({
-    mass: 5,
-    shape: new CANNON.Sphere(radius),
-    position: new CANNON.Vec3(0, 8, 0),
-    material: sphereMaterial
-});
-world.addBody(sphereBody);
+   const platforms = [
+       Bodies.rectangle(window.innerWidth / 2 - 300, 100, 350, 15, { ...platformSettings, angle: Math.PI * 0.3 }),
+       Bodies.rectangle(window.innerWidth / 2 + 300, 180, 350, 15, { ...platformSettings, angle: -Math.PI * 0.3 }),
 
-const sphereMesh = new THREE.Mesh(
-    new THREE.SphereGeometry(radius, 32, 32),
-    new THREE.MeshStandardMaterial({ color: "#b9fbc0" })
-);
-sphereMesh.castShadow = true;
-scene.add(sphereMesh);
+       Bodies.rectangle(window.innerWidth / 2 - 250, 260, 320, 15, { ...platformSettings, angle: Math.PI * 0.2 }),
+       Bodies.rectangle(window.innerWidth / 2 + 250, 340, 320, 15, { ...platformSettings, angle: -Math.PI * 0.2 }),
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
-scene.add(ambientLight);
+       Bodies.rectangle(window.innerWidth / 3, 400, 280, 15, platformSettings),
+       Bodies.rectangle(window.innerWidth * 0.75, 450, 280, 15, platformSettings),
 
-const light = new THREE.DirectionalLight(0xffffff, 2);
-light.position.set(5, 10, 5);
-light.castShadow = true;
-light.shadow.mapSize.width = 1024;
-light.shadow.mapSize.height = 1024;
-scene.add(light);
+       Bodies.rectangle(window.innerWidth / 2 - 230, 500, 280, 15, bouncyPlatformSettings),
+       Bodies.rectangle(window.innerWidth / 2 + 230, 570, 280, 15, bouncyPlatformSettings),
 
-const clock = new THREE.Clock();
-const objectsToUpdate = [
-    { body: cubeBody, mesh: cubeMesh },
-    { body: sphereBody, mesh: sphereMesh }
-];
+       Bodies.rectangle(window.innerWidth / 2, 640, 280, 15, platformSettings)
+   ];
+   World.add(world, platforms);
 
-function animate() {
-    const delta = clock.getDelta();
-    world.step(1 / 60, delta, 3);
-    control.update();
-    objectsToUpdate.forEach(obj => {
-        obj.mesh.position.copy(obj.body.position);
-        obj.mesh.quaternion.copy(obj.body.quaternion);
-    });
-    renderer.render(scene, camera);
-    requestAnimationFrame(animate);
-}
-animate();
+   // **Trampoline spanning the entire width**
+   const trampoline = Bodies.rectangle(window.innerWidth / 2, window.innerHeight - 40, window.innerWidth, 20, {
+       isStatic: true,
+       restitution: 80.3,
+       render: { fillStyle: '#ff69b4' }
+   });
+   World.add(world, trampoline);
 
-window.addEventListener("click", spawnCube);
-window.addEventListener("contextmenu", (event) => {
-    event.preventDefault();
-    spawnSphere();
-});
-const pastelColors = [
-    "#FFC8DD", "#FFAFCC", "#BDE0FE", "#A2D2FF", "#CDB4DB",
-    "#E4C1F9", "#B9FBC0", "#A0C4FF", "#FBC3BC", "#FDE4CF",
-    "#C6DEF1", "#D8E2DC", "#FFD6A5", "#FFADAD", "#CAFFBF",
-    "#9BF6FF", "#A8E6CF", "#DCEDC1", "#FFABAB", "#FFC3A0",
-    "#F6D6AD", "#FBE7C6", "#D4A5A5", "#E5EAF5", "#C1CEFE",
-    "#FFCBF2", "#F3C4FB", "#D8BFD8", "#F6E4F6", "#F4D1AE"
-];
+   // Side barriers
+   const sideBarrierOptions = { isStatic: true, render: { fillStyle: '#ffffff00' } };
+   World.add(world, [
+       Bodies.rectangle(0, window.innerHeight / 2, 20, window.innerHeight, sideBarrierOptions),
+       Bodies.rectangle(window.innerWidth, window.innerHeight / 2, 20, window.innerHeight, sideBarrierOptions)
+   ]);
 
-function spawnCube() {
-    const x = (Math.random() - 0.5) * 15;
-    const y = 5;
-    const z = (Math.random() - 0.5) * 15;
-    const color = pastelColors[Math.floor(Math.random() * 30)];
+   // **Spawn More Balls on Load**
+   for (let i = 0; i < 30; i++) {
+       spawnBall(Math.random() * window.innerWidth, Math.random() * 200);
+   }
 
-    const newCubeBody = new CANNON.Body({
-        mass: 1,
-        shape: new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5)),
-        position: new CANNON.Vec3(x, y, z),
-        material: cubeMaterial
-    });
-    world.addBody(newCubeBody);
+   document.addEventListener("contextmenu", (event) => {
+       event.preventDefault();
+       spawnBall(event.clientX, event.clientY);
+   });
 
-    const newCubeMesh = new THREE.Mesh(
-        new THREE.BoxGeometry(1, 1, 1),
-        new THREE.MeshStandardMaterial({ color })
-    );
-    newCubeMesh.castShadow = true;
-    scene.add(newCubeMesh);
-    objectsToUpdate.push({ body: newCubeBody, mesh: newCubeMesh });
-}
-
-function spawnSphere() {
-    const x = (Math.random() - 0.5) * 15;
-    const y = 5;
-    const z = (Math.random() - 0.5) * 15;
-    const color = pastelColors[Math.floor(Math.random() * 30)];
-
-    const newSphereBody = new CANNON.Body({
-        mass: 3,
-        shape: new CANNON.Sphere(radius),
-        position: new CANNON.Vec3(x, y, z),
-        material: sphereMaterial
-    });
-    world.addBody(newSphereBody);
-
-    const newSphereMesh = new THREE.Mesh(
-        new THREE.SphereGeometry(radius, 32, 32),
-        new THREE.MeshStandardMaterial({ color })
-    );
-    newSphereMesh.castShadow = true;
-    scene.add(newSphereMesh);
-    objectsToUpdate.push({ body: newSphereBody, mesh: newSphereMesh });
-}
+   document.getElementById("playButton").addEventListener("click", () => {
+       window.location.href = "src/html/sandbox.html";
+   });

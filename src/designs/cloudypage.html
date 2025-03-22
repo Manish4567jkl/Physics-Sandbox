@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cozy World</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Prevent horizontal scrolling */
+        html, body {
+            overflow-x: hidden;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Background with subtle color shifting */
+        body {
+            @apply flex items-center justify-center h-screen text-white relative;
+            background: linear-gradient(160deg, #ffd6e0, #c2e9fb, #ffdfba);
+            animation: backgroundShift 12s infinite alternate ease-in-out;
+        }
+
+        @keyframes backgroundShift {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 100% 100%; }
+        }
+
+        /* Animated Clouds */
+        .clouds {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .cloud {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(10px);
+            opacity: 0.7;
+            animation: moveClouds linear infinite;
+        }
+
+        @keyframes moveClouds {
+            0% { transform: translateX(-200px); opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { transform: translateX(calc(100vw + 200px)); opacity: 0.5; }
+        }
+
+        /* Main Content */
+        .container {
+            text-align: center;
+            opacity: 0;
+            animation: fadeIn 1.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .title {
+            font-size: 5rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-shadow: 0px 0px 20px rgba(255, 255, 255, 0.4);
+        }
+
+        .title span {
+            display: block;
+            font-size: 6rem;
+            font-weight: 900;
+            color: #E0F2FE;
+        }
+
+        .loading {
+            font-size: 3rem;
+            opacity: 0.9;
+            margin-top: 10px;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 0.6; transform: scale(1); }
+        }
+
+        .play-button {
+            display: none;
+            margin-top: 20px;
+            padding: 15px 40px;
+            font-size: 2rem;
+            font-weight: bold;
+            background: #E0F2FE;
+            color: #4B5563;
+            border: none;
+            border-radius: 40px;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .play-button:hover {
+            background: #bae6fd;
+            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Clouds -->
+    <div class="clouds"></div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <h1 class="title">COZY <span>WORLD</span></h1>
+        <p class="loading" id="loadingText">0%</p>
+        <button id="playButton" class="play-button">Play</button>
+    </div>
+
+    <script>
+        function createClouds(count) {
+            const cloudContainer = document.querySelector(".clouds");
+            const colors = ["rgba(255, 255, 255, 0.7)", "rgba(255, 182, 193, 0.6)", "rgba(173, 216, 230, 0.6)", "rgba(230, 230, 250, 0.5)"];
+
+            for (let i = 0; i < count; i++) {
+                let cloud = document.createElement("div");
+                cloud.classList.add("cloud");
+
+                // Random cloud properties
+                let size = Math.random() * 120 + 80; // 80px - 200px
+                cloud.style.width = size + "px";
+                cloud.style.height = size * 0.6 + "px";
+                cloud.style.top = Math.random() * 80 + "%";
+                cloud.style.left = Math.random() * -200 + "px"; // Spawn off-screen
+                cloud.style.animationDuration = (Math.random() * 20 + 15) + "s";
+                cloud.style.animationDelay = (-Math.random() * 5) + "s"; // Staggered start
+                cloud.style.background = colors[Math.floor(Math.random() * colors.length)];
+                cloud.style.opacity = Math.random() * 0.5 + 0.5; // 0.5 - 1
+
+                cloudContainer.appendChild(cloud);
+            }
+        }
+        createClouds(12); // Adds 12 floating clouds
+
+        let loading = 0;
+        const loadingText = document.getElementById("loadingText");
+        const playButton = document.getElementById("playButton");
+
+        const interval = setInterval(() => {
+            loading += 2;
+            loadingText.innerText = loading + "%";
+
+            if (loading >= 100) {
+                clearInterval(interval);
+                setTimeout(() => {
+                    loadingText.style.opacity = "0";
+                    playButton.style.display = "inline-block";
+                }, 500);
+            }
+        }, 50);
+    </script>
+</body>
+</html>

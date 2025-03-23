@@ -2,21 +2,19 @@ import * as THREE from "three";
 import * as CANNON from "cannon-es";
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-
-
-
-
+//? Creating the scene and camera with positioning
 const scene = new THREE.Scene();
 scene.background = new THREE.Color("#A7C7E7");
 const camera = new THREE.PerspectiveCamera(
     45, 
     window.innerWidth / window.innerHeight, 
     0.1, 
-    100 
+    1000 
 );
 camera.position.set(5, 10, 10);
 camera.lookAt(0, 0, 0);
 
+//? Creating canvas and renderer
 const canvas = document.querySelector("canvas.threejs");
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -26,22 +24,50 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 const control = new OrbitControls(camera, canvas);
 control.update();
+
+//? Creating the cannon-es world for physics
 const world = new CANNON.World();
-world.gravity.set(0, -9.81, 0); 
+world.gravity.set(0, -9.81, 0);
 
+//? Wind force
+let windForce = new CANNON.Vec3(0, 0, 0);
+const windSlider = document.getElementById("wind-slider");
+const windDisplay = document.getElementById("wind-value");
 
+windSlider.addEventListener("input", () => {
+    const forceValue = parseFloat(windSlider.value);
+    windDisplay.textContent = `${forceValue} N`;
+    windForce.set(forceValue, 0, 0);
+});
+
+//? Sliders for gravity
 const slider = document.getElementById("gravity-slider");
 const display = document.getElementById("gravity-value");
-
 
 slider.addEventListener("input", () => {
     display.textContent = `${slider.value} m/s²`;
     world.gravity.set(0, slider.value, 0);
 });
 
+//? Creating materials for physics objects
+const groundMaterial = new CANNON.Material("ground");
+const sphereMaterial = new CANNON.Material("sphere");
+const cubeMaterial = new CANNON.Material("cube");
 
+//? Contact materials
+const groundSphereContact = new CANNON.ContactMaterial(groundMaterial, sphereMaterial, {
+    friction: 0.4,
+    restitution: 0.8 
+});
+const groundCubeContact = new CANNON.ContactMaterial(groundMaterial, cubeMaterial, {
+    friction: 0.6,
+    restitution: 0.3 
+});
 
-const groundMaterial = new CANNON.Material({ friction: 0.5, restitution: 0.8 });
+world.addContactMaterial(groundSphereContact);
+world.addContactMaterial(groundCubeContact);
+
+//? Creating Ground - Both cannonjs and threejs
 const groundBody = new CANNON.Body({
     shape: new CANNON.Plane(),
     mass: 0,
@@ -52,7 +78,7 @@ groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 world.addBody(groundBody);
 
 const groundMesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(60, 60),
+    new THREE.PlaneGeometry(100, 100),
     new THREE.MeshStandardMaterial({ color: "#D08C9B", side: THREE.DoubleSide })
 );
 groundMesh.rotation.x = -Math.PI / 2;
@@ -60,42 +86,11 @@ groundMesh.position.y = -0.5;
 groundMesh.receiveShadow = true;
 scene.add(groundMesh);
 
-const gridHelper = new THREE.GridHelper(60, 60);
+//? Grid helper
+const gridHelper = new THREE.GridHelper(100, 100);
 scene.add(gridHelper);
 
-const cubeMaterial = new CANNON.Material({ friction: 0.1, restitution: 1 });
-const cubeBody = new CANNON.Body({
-    mass: 1,
-    shape: new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5)),
-    position: new CANNON.Vec3(0, 8, 0),
-    material: cubeMaterial
-});
-world.addBody(cubeBody);
-
-const cubeMesh = new THREE.Mesh(
-    new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshStandardMaterial({ color: "#ffafcc" })
-);
-cubeMesh.castShadow = true;
-scene.add(cubeMesh);
-
-const radius = 0.52;
-const sphereMaterial = new CANNON.Material({ friction: 0.1, restitution: 1 });
-const sphereBody = new CANNON.Body({
-    mass: 5,
-    shape: new CANNON.Sphere(radius),
-    position: new CANNON.Vec3(0, 8, 0),
-    material: sphereMaterial
-});
-world.addBody(sphereBody);
-
-const sphereMesh = new THREE.Mesh(
-    new THREE.SphereGeometry(radius, 32, 32),
-    new THREE.MeshStandardMaterial({ color: "#b9fbc0" })
-);
-sphereMesh.castShadow = true;
-scene.add(sphereMesh);
-
+//? Lighting 
 const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
 scene.add(ambientLight);
 
@@ -107,16 +102,33 @@ light.shadow.mapSize.height = 1024;
 scene.add(light);
 
 const clock = new THREE.Clock();
-const objectsToUpdate = [
-    { body: cubeBody, mesh: cubeMesh },
-    { body: sphereBody, mesh: sphereMesh }
-];
+const objectsToUpdate = [];
+
+let newSphereMass = 1;
+let newCubeMass = 1;
+
+const sphereMassSlider = document.getElementById("sphere-mass-slider");
+const sphereMassDisplay = document.getElementById("sphere-mass-value");
+
+sphereMassSlider.addEventListener("input", () => {
+    sphereMassDisplay.textContent = `${sphereMassSlider.value} kg`;
+    newSphereMass = parseFloat(sphereMassSlider.value);
+});
+
+const cubeMassSlider = document.getElementById("cube-mass-slider");
+const cubeMassDisplay = document.getElementById("cube-mass-value");
+
+cubeMassSlider.addEventListener("input", () => {
+    cubeMassDisplay.textContent = `${cubeMassSlider.value} kg`;
+    newCubeMass = parseFloat(cubeMassSlider.value);
+});
 
 function animate() {
     const delta = clock.getDelta();
     world.step(1 / 60, delta, 3);
     control.update();
     objectsToUpdate.forEach(obj => {
+        obj.body.applyForce(windForce, obj.body.position);
         obj.mesh.position.copy(obj.body.position);
         obj.mesh.quaternion.copy(obj.body.quaternion);
     });
@@ -130,23 +142,17 @@ window.addEventListener("contextmenu", (event) => {
     event.preventDefault();
     spawnSphere();
 });
-const pastelColors = [
-    "#FFC8DD", "#FFAFCC", "#BDE0FE", "#A2D2FF", "#CDB4DB",
-    "#E4C1F9", "#B9FBC0", "#A0C4FF", "#FBC3BC", "#FDE4CF",
-    "#C6DEF1", "#D8E2DC", "#FFD6A5", "#FFADAD", "#CAFFBF",
-    "#9BF6FF", "#A8E6CF", "#DCEDC1", "#FFABAB", "#FFC3A0",
-    "#F6D6AD", "#FBE7C6", "#D4A5A5", "#E5EAF5", "#C1CEFE",
-    "#FFCBF2", "#F3C4FB", "#D8BFD8", "#F6E4F6", "#F4D1AE"
-];
+
+const pastelColors = ["#FFC8DD", "#FFAFCC", "#BDE0FE", "#A2D2FF", "#CDB4DB"];
 
 function spawnCube() {
     const x = (Math.random() - 0.5) * 15;
     const y = 5;
     const z = (Math.random() - 0.5) * 15;
-    const color = pastelColors[Math.floor(Math.random() * 30)];
+    const color = pastelColors[Math.floor(Math.random() * pastelColors.length)];
 
     const newCubeBody = new CANNON.Body({
-        mass: 1,
+        mass: newCubeMass,
         shape: new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5)),
         position: new CANNON.Vec3(x, y, z),
         material: cubeMaterial
@@ -166,18 +172,18 @@ function spawnSphere() {
     const x = (Math.random() - 0.5) * 15;
     const y = 5;
     const z = (Math.random() - 0.5) * 15;
-    const color = pastelColors[Math.floor(Math.random() * 30)];
+    const color = pastelColors[Math.floor(Math.random() * pastelColors.length)];
 
     const newSphereBody = new CANNON.Body({
-        mass: 3,
-        shape: new CANNON.Sphere(radius),
+        mass: newSphereMass,
+        shape: new CANNON.Sphere(0.52),
         position: new CANNON.Vec3(x, y, z),
         material: sphereMaterial
     });
     world.addBody(newSphereBody);
 
     const newSphereMesh = new THREE.Mesh(
-        new THREE.SphereGeometry(radius, 32, 32),
+        new THREE.SphereGeometry(0.52, 32, 32),
         new THREE.MeshStandardMaterial({ color })
     );
     newSphereMesh.castShadow = true;

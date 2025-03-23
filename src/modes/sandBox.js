@@ -57,11 +57,11 @@ const cubeMaterial = new CANNON.Material("cube");
 //? Contact materials
 const groundSphereContact = new CANNON.ContactMaterial(groundMaterial, sphereMaterial, {
     friction: 0.4,
-    restitution: 0.8 
+    restitution: 1.1 
 });
 const groundCubeContact = new CANNON.ContactMaterial(groundMaterial, cubeMaterial, {
-    friction: 0.6,
-    restitution: 0.3 
+    friction: 0.3,
+    restitution: 0.7
 });
 
 world.addContactMaterial(groundSphereContact);
@@ -143,7 +143,16 @@ window.addEventListener("contextmenu", (event) => {
     spawnSphere();
 });
 
-const pastelColors = ["#FFC8DD", "#FFAFCC", "#BDE0FE", "#A2D2FF", "#CDB4DB"];
+const pastelColors = [
+    "#FFC8DD", "#FFAFCC", "#BDE0FE", "#A2D2FF", "#CDB4DB", 
+    "#FF99C8", "#FCF6BD", "#D0F4DE", "#A9DEF9", "#E4C1F9", 
+    "#FFCF56", "#FFA69E", "#FAF3DD", "#FFDE7D", "#FEC8D8", 
+    "#F8AFA6", "#B5EAD7", "#A2E1DB", "#FF9A8B", "#E2ECE9", 
+    "#F8C8DC", "#FF6F91", "#D4A5A5", "#FFB4A2", "#FFD6A5", 
+    "#9ADE7B", "#A3C4F3", "#98DDCA", "#C3B1E1", "#F9C5D5"
+  ];
+  
+  
 
 function spawnCube() {
     const x = (Math.random() - 0.5) * 15;

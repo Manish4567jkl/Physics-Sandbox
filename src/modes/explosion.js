@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import * as CANNON from "cannon-es";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-// ————— THREE.JS SETUP —————
+
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#A7C7E7');
 
@@ -26,17 +26,16 @@ controls.maxDistance = 200;
 controls.minDistance = 20;
 controls.enableZoom = true;
 
-// ————— CANNON-ES SETUP —————
+
 const world = new CANNON.World({
     gravity: new CANNON.Vec3(0, -9.82, 0)
     
 });
-world.broadphase = new CANNON.SAPBroadphase(world); // better broadphase
-world.allowSleep = true; // let objects "nap" for performance
+world.broadphase = new CANNON.SAPBroadphase(world); 
+world.allowSleep = true; 
 
 const timeStep = 1 / 60;
 
-// ————— GROUND —————
 const groundMesh = new THREE.Mesh(
     new THREE.PlaneGeometry(200, 200),
     new THREE.MeshStandardMaterial({ color: "#D08C9B", side: THREE.DoubleSide })
@@ -56,7 +55,7 @@ world.addBody(groundBody);
 const gridHelper = new THREE.GridHelper(200, 200);
 scene.add(gridHelper);
 
-// ————— LIGHTS —————
+
 const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
 scene.add(ambientLight);
 
@@ -65,7 +64,7 @@ light.position.set(5, 10, 5);
 light.castShadow = true;
 scene.add(light);
 
-// ————— EXPLOSION CIRCLE —————
+
 let currentRadius = 2;
 let circleGeometry = new THREE.CircleGeometry(currentRadius, 64);
 circleGeometry.rotateX(-Math.PI / 2);
@@ -80,7 +79,7 @@ const explosionCircle = new THREE.Mesh(circleGeometry, circleMaterial);
 explosionCircle.position.y = 0.01;
 scene.add(explosionCircle);
 
-// ————— MOUSE TRACKING —————
+
 const mouse = new THREE.Vector2();
 const raycaster = new THREE.Raycaster();
 
@@ -110,12 +109,12 @@ window.addEventListener("resize", () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-const wallHeight = 40;
-const wallThickness = 10;
-const halfGroundSize = 100;
-const ceilingY = 80; // give ‘em sky to soar
+const wallHeight = 80;
+const wallThickness = 30;
+const halfGroundSize = 50;
+const ceilingY = 80; 
 
-// ——— WALL POSITIONS ———
+
 const wallPositions = [
   { x: halfGroundSize + wallThickness / 2, y: wallHeight / 2, z: 0, rotY: 0 }, // Right
   { x: -halfGroundSize - wallThickness / 2, y: wallHeight / 2, z: 0, rotY: 0 }, // Left
@@ -142,7 +141,7 @@ wallPositions.forEach(({ x, y, z, rotY }) => {
   world.addBody(wallBody);
 });
 
-// ——— CEILING ———
+
 const ceilingGeo = new THREE.BoxGeometry(halfGroundSize * 2 + wallThickness * 2, wallThickness, halfGroundSize * 2 + wallThickness * 2);
 const ceilingMat = new THREE.MeshBasicMaterial({ visible: false });
 const ceilingMesh = new THREE.Mesh(ceilingGeo, ceilingMat);
@@ -161,10 +160,10 @@ world.addBody(ceilingBody);
 
 
 
-// ————— PHYSICS OBJECTS —————
+
 const boxes = [];
 
-// Spawn a single box with given position, size, and color
+
 function spawnBox(x, y, z, size = 1, colorHex = 0x8844aa) {
     const boxGeo = new THREE.BoxGeometry(size, size, size);
     const boxMat = new THREE.MeshStandardMaterial({ color: colorHex });
@@ -187,16 +186,135 @@ function spawnBox(x, y, z, size = 1, colorHex = 0x8844aa) {
     boxes.push({ mesh: boxMesh, body: boxBody });
 }
 
-// Spawn a stacked tower of boxes with varying sizes/colors
+
+function spawnSphere(x, y, z, radius = 1, colorHex = 0x44aa88) {
+    const sphereGeo = new THREE.SphereGeometry(radius, 32, 32);
+    const sphereMat = new THREE.MeshStandardMaterial({ color: colorHex });
+    const sphereMesh = new THREE.Mesh(sphereGeo, sphereMat);
+    sphereMesh.castShadow = true;
+    sphereMesh.position.set(x, y, z);
+    scene.add(sphereMesh);
+
+    const sphereShape = new CANNON.Sphere(radius);
+    const sphereBody = new CANNON.Body({
+        mass: 1,
+        shape: sphereShape,
+        position: new CANNON.Vec3(x, y, z)
+    });
+
+    world.addBody(sphereBody);
+
+    boxes.push({ mesh: sphereMesh, body: sphereBody });
+}
+
+
+function spawnCylinder(x, y, z, radiusTop = 1, radiusBottom = 1, height = 2, colorHex = 0xaa8844) {
+    const cylGeo = new THREE.CylinderGeometry(radiusTop, radiusBottom, height, 32);
+    const cylMat = new THREE.MeshStandardMaterial({ color: colorHex });
+    const cylMesh = new THREE.Mesh(cylGeo, cylMat);
+    cylMesh.castShadow = true;
+    cylMesh.position.set(x, y, z);
+    scene.add(cylMesh);
+
+    const cylShape = new CANNON.Cylinder(radiusTop, radiusBottom, height, 32);
+
+
+    const quat = new CANNON.Quaternion();
+    quat.setFromEuler(-Math.PI / 2, 0, 0);
+    cylShape.transformAllPoints(new CANNON.Vec3(), quat);
+
+    const cylBody = new CANNON.Body({
+        mass: 1,
+        shape: cylShape,
+        position: new CANNON.Vec3(x, y, z),
+        quaternion: quat.clone()
+    });
+
+    world.addBody(cylBody);
+
+    boxes.push({ mesh: cylMesh, body: cylBody });
+}
+
+
+function spawnHouse(x, z) {
+    const baseSize = 2;
+    const baseHeight = 1;
+
+    // Base
+    spawnBox(x, baseHeight / 2, z, baseSize, 0xB5651D); // brown
+
+    // Roof mesh (visual only)
+    const roofGeo = new THREE.ConeGeometry(baseSize * 0.9, baseHeight, 4);
+    const roofMat = new THREE.MeshStandardMaterial({ color: 0x8B0000 }); // dark red
+    const roofMesh = new THREE.Mesh(roofGeo, roofMat);
+    roofMesh.position.set(x, baseHeight + baseHeight / 2, z);
+    roofMesh.castShadow = true;
+    scene.add(roofMesh);
+
+    // Roof body (approximate with a ConvexPolyhedron - pyramid)
+    const half = (baseSize * 0.9) / 2;
+    const roofHeight = baseHeight;
+
+    const verts = [
+        new CANNON.Vec3(-half, 0, -half),
+        new CANNON.Vec3( half, 0, -half),
+        new CANNON.Vec3( half, 0,  half),
+        new CANNON.Vec3(-half, 0,  half),
+        new CANNON.Vec3(0, roofHeight, 0) // top vertex
+    ];
+
+    const faces = [
+        [0, 1, 2],
+        [0, 2, 3],
+        [0, 1, 4],
+        [1, 2, 4],
+        [2, 3, 4],
+        [3, 0, 4]
+    ];
+
+    const roofShape = new CANNON.ConvexPolyhedron({ vertices: verts, faces });
+    const roofBody = new CANNON.Body({
+        mass: 1,
+        position: new CANNON.Vec3(x, baseHeight + baseHeight / 2, z),
+        shape: roofShape
+    });
+
+    world.addBody(roofBody);
+    boxes.push({ mesh: roofMesh, body: roofBody });
+}
+
 function spawnTower(x, z, height = 5) {
+    
     for (let i = 0; i < height; i++) {
-        const size = 0.8 + Math.random() * 0.7; // size between 0.8 and 1.5
+        const size = 0.9+ Math.random() * 0.7; 
         const color = new THREE.Color(`hsl(${Math.random() * 360}, 70%, 60%)`);
         spawnBox(x, size / 2 + i * size, z, size, color.getHex());
     }
 }
 
-// Clear previous boxes before spawning (optional)
+function spawnTown(centerX = 0, centerZ = 0) {
+    const spacing = 6;
+
+    for (let row = -1; row <= 1; row++) {
+        for (let col = -1; col <= 1; col++) {
+            const x = centerX + col * spacing;
+            const z = centerZ + row * spacing;
+            
+            const rand = Math.random();
+            if (rand < 0.4) {
+                spawnHouse(x, z);
+            } else if (rand < 0.7) {
+                spawnTower(x, z, 3 + Math.floor(Math.random() * 3)); 
+            } else {
+                spawnCylinder(x, 1.5, z, 1, 1, 3, 0x888888); 
+            }
+        }
+    }
+}
+
+
+
+
 function clearBoxes() {
     boxes.forEach(({ mesh, body }) => {
         scene.remove(mesh);
@@ -205,27 +323,146 @@ function clearBoxes() {
     boxes.length = 0;
 }
 
-// ————— INITIAL STRUCTURE SPAWNING —————
+
 clearBoxes();
 
-for (let i = 0; i < 40; i++) {
+clearBoxes();
+spawnTown(0, 0); 
+
+for (let i = 0; i < 50; i++) {
     const x = (Math.random() - 0.5) * 60;
     const z = (Math.random() - 0.5) * 60;
+    const rand = Math.random();
 
-    if (Math.random() < 0.5) {
-        // Single box with random size and color
+    if (rand < 0.25) {
         const size = 0.5 + Math.random() * 1.5;
         const color = new THREE.Color(`hsl(${Math.random() * 360}, 70%, 60%)`);
         const y = size / 2 + Math.random() * 3;
         spawnBox(x, y, z, size, color.getHex());
-    } else {
-        // Tower of boxes
-        const height = Math.floor(Math.random() * 5) + 3; // 3 to 7 boxes tall
+    } else if (rand < 0.5) {
+        const height = Math.floor(Math.random() * 5) + 3;
         spawnTower(x, z, height);
+    } else if (rand < 0.75) {
+        const radius = 0.5 + Math.random() * 1.5;
+        const y = radius + Math.random() * 2;
+        const color = new THREE.Color(`hsl(${Math.random() * 360}, 70%, 60%)`);
+        spawnSphere(x, y, z, radius, color.getHex());
+    } else {
+        const radiusTop = 0.4 + Math.random() * 1.0;
+        const radiusBottom = 0.4 + Math.random() * 1.0;
+        const height = 1.0 + Math.random() * 2.0;
+        const y = height / 2 + Math.random() * 2;
+        const color = new THREE.Color(`hsl(${Math.random() * 360}, 70%, 60%)`);
+        spawnCylinder(x, y, z, radiusTop, radiusBottom, height, color.getHex());
     }
 }
+spawnTown(-40, 30);
+spawnTown(40, -30);
+spawnTown(-60, -60); // Far bottom-left
+spawnTown(60, 60);   // Far top-right
+spawnTown(-70, 20);  // Far left-ish
+spawnTown(20, -70);  // Deep south-ish
 
-// ————— EXPLOSION FUNCTION —————
+
+function spawnRandomPoof(x, y, z) {
+    const poofTypes = [spawnPoofDust, spawnPoofFire, spawnPoofMagic, spawnPoofFairy, spawnPoofStar];
+    const type = poofTypes[Math.floor(Math.random() * poofTypes.length)];
+    type(x, y, z);
+}
+
+function spawnPoofDust(x, y, z) {
+    spawnPoof(x, y, z, 0xdcdcdc); // light gray
+}
+
+function spawnPoofFire(x, y, z) {
+    spawnPoof(x, y, z, 0xffc2b4); // pastel coral
+}
+
+function spawnPoofMagic(x, y, z) {
+    spawnPoof(x, y, z, 0xcaaaff); // soft lavender
+}
+
+function spawnPoofFairy(x, y, z) {
+    spawnPoof(x, y, z, 0xa8ffe9); // mint sparkle
+}
+
+function spawnPoofStar(x, y, z) {
+    spawnPoof(x, y, z, 0xfff0a8); // pale gold
+}
+
+function spawnPoof(x, y, z, baseColor = 0xffffff, scaleSpeed = 0.008, fadeSpeed = 0.02) {
+    const pastelColors = [
+        0xffc1cc, 0xaee6e6, 0xcbb8ff, 0xffe29f, 0xa0c4ff, 0xffffb3, 0xe0bbff
+    ];
+
+    const poofGroup = new THREE.Group();
+    const poofParticles = [];
+    const particleCount = 18 + Math.floor(Math.random() * 12);
+
+    for (let i = 0; i < particleCount; i++) {
+        const color = pastelColors[Math.floor(Math.random() * pastelColors.length)];
+        const geometry = new THREE.SphereGeometry(0.05 + Math.random() * 0.03, 6, 6);
+        const material = new THREE.MeshStandardMaterial({
+            color: color,
+            transparent: true,
+            opacity: 0.8,
+            emissive: color,
+            emissiveIntensity: 2.0,
+            roughness: 0.2,
+            metalness: 0.6,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+
+        const mesh = new THREE.Mesh(geometry, material);
+
+        const angle = Math.random() * Math.PI * 2;
+        const elevation = Math.random() * Math.PI;
+        const radius = 0.2 + Math.random() * 0.4;
+
+        const dir = new THREE.Vector3(
+            Math.cos(angle) * Math.sin(elevation),
+            Math.cos(elevation),
+            Math.sin(angle) * Math.sin(elevation)
+        ).normalize().multiplyScalar(radius);
+
+        mesh.position.set(x, y, z);
+        poofGroup.add(mesh);
+
+        poofParticles.push({
+            mesh,
+            velocity: dir,
+            scaleSpeed: scaleSpeed + Math.random() * 0.005,
+            fadeSpeed: fadeSpeed + Math.random() * 0.005
+        });
+    }
+
+    scene.add(poofGroup);
+
+    const updatePoof = () => {
+        for (let i = poofParticles.length - 1; i >= 0; i--) {
+            const p = poofParticles[i];
+            p.mesh.position.add(p.velocity);
+            p.mesh.scale.multiplyScalar(1 + p.scaleSpeed);
+            p.mesh.material.opacity -= p.fadeSpeed;
+
+            if (p.mesh.material.opacity <= 0) {
+                poofGroup.remove(p.mesh);
+                poofParticles.splice(i, 1);
+            }
+        }
+
+        if (poofParticles.length > 0) {
+            requestAnimationFrame(updatePoof);
+        } else {
+            scene.remove(poofGroup);
+        }
+    };
+
+    updatePoof();
+}
+
+
 function triggerExplosion(strength = 80) {
     const center = explosionCircle.position;
 
@@ -236,21 +473,32 @@ function triggerExplosion(strength = 80) {
             forceDirection.normalize();
             const force = forceDirection.scale((1 - distance / currentRadius) * strength);
             body.applyImpulse(force, body.position);
+
+            // 🎇 Sparkly poof on every hit
+            spawnRandomPoof(body.position.x, body.position.y, body.position.z);
         }
     });
+
+    // 💥 Central dreamy burst
+    spawnRandomPoof(center.x, center.y + 1, center.z);
 }
 
-// ————— MOUSE CLICK EVENTS —————
+
+
+
+
+
+
 window.addEventListener('mousedown', (e) => {
     if (e.button === 0) {
-        triggerExplosion(100); // Left click = BIG explosion
+        triggerExplosion(100); 
     } else if (e.button === 2) {
-        triggerExplosion(30); // Right click = gentle puff
+        triggerExplosion(30); 
     }
 });
-window.addEventListener('contextmenu', e => e.preventDefault()); // disable right-click menu
+window.addEventListener('contextmenu', e => e.preventDefault()); 
 
-// ————— ANIMATE —————
+
 const animate = () => {
     controls.update();
 

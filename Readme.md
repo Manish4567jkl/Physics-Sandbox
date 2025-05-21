@@ -1,4 +1,4 @@
-# 🌸 Something Bouncy 🌼  
+# 🌸 Physics Clusterfuck 🌼  
 
 ### A playful physics playground where everything wobbles, tumbles, and reacts in the most satisfying way.  
 Tweak **gravity, mass, and wind** in **sandbox mode**, or jump into different game modes where physics takes center stage.  

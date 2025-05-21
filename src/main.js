@@ -109,5 +109,5 @@
    });
 
    document.getElementById("playButton").addEventListener("click", () => {
-       window.location.href = "src/html/sandbox.html";
+       window.location.href = "/src/html/mode-selection.html";
    });

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dreamy Glass Menu</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      background: linear-gradient(to bottom, #c6d0ff, #f8eaff);
+      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
+    }
+
+    #matter-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    .glass-button {
+      position: absolute;
+      width: 240px;
+      height: 80px;
+      border-radius: 25px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #4b3a74;
+      font-size: 20px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      animation: float 6s ease-in-out infinite alternate, drift 16s linear infinite;
+      z-index: 2;
+    }
+
+    .glass-button:hover {
+      transform: translateY(-6px) scale(1.05);
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-1 { top: 100px; left: 120px; animation-delay: 0s, 0s; }
+    .btn-2 { top: 220px; left: 140px; animation-delay: 0.3s, 1s; }
+    .btn-3 { top: 340px; left: 130px; animation-delay: 0.6s, 2s; }
+
+    @keyframes float {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-10px); }
+    }
+
+    @keyframes drift {
+      0% { transform: translateX(0); }
+      50% { transform: translateX(10px); }
+      100% { transform: translateX(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="glass-button btn-1" id="btn-sandbox">Sandbox</div>
+  <div class="glass-button btn-2" id="btn-chaos">Explosion mode</div>
+  <div class="glass-button btn-3" id="btn-float">Float Land</div>
+  
+
+  <div id="matter-container"></div>
+
+  <script>
+    const {
+      Engine, Render, Runner, World, Bodies, Body, Events
+    } = Matter;
+
+    const engine = Engine.create();
+    const world = engine.world;
+
+    const container = document.getElementById('matter-container');
+
+    const render = Render.create({
+      element: container,
+      engine: engine,
+      options: {
+        width: window.innerWidth,
+        height: window.innerHeight,
+        wireframes: false,
+        background: 'transparent'
+      }
+    });
+
+    Render.run(render);
+    Runner.run(Runner.create(), engine);
+
+    const bounds = [
+      Bodies.rectangle(window.innerWidth / 2, window.innerHeight + 60, window.innerWidth, 120, { isStatic: true }),
+      Bodies.rectangle(window.innerWidth / 2, -60, window.innerWidth, 120, { isStatic: true }),
+      Bodies.rectangle(-60, window.innerHeight / 2, 120, window.innerHeight, { isStatic: true }),
+      Bodies.rectangle(window.innerWidth + 60, window.innerHeight / 2, 120, window.innerHeight, { isStatic: true }),
+    ];
+    World.add(world, bounds);
+
+    function makeShape(x, y) {
+      const options = {
+        restitution: 0.9,
+        frictionAir: 0.02,
+        render: {
+          fillStyle: `hsl(${Math.random() * 360}, 70%, 85%)`
+        }
+      };
+      const types = [
+        () => Bodies.circle(x, y, 20 + Math.random() * 10, options),
+        () => Bodies.rectangle(x, y, 30 + Math.random() * 10, 30 + Math.random() * 10, options),
+        () => Bodies.polygon(x, y, 5, 20, options),
+        () => Bodies.polygon(x, y, 6, 25, options)
+      ];
+      return types[Math.floor(Math.random() * types.length)]();
+    }
+
+    for (let i = 0; i < 60; i++) {
+      const shape = makeShape(
+        Math.random() * window.innerWidth,
+        Math.random() * window.innerHeight * 0.7
+      );
+      World.add(world, shape);
+    }
+
+    const vortex = Bodies.circle(window.innerWidth / 2, window.innerHeight - 140, 100, {
+      isStatic: true,
+      render: {
+        fillStyle: 'rgba(180, 200, 255, 0.15)'
+      }
+    });
+    World.add(world, vortex);
+
+    let angle = 0;
+
+    Events.on(engine, 'beforeUpdate', () => {
+      angle += 0.01;
+      const x = window.innerWidth / 2 + Math.sin(angle) * 200;
+      const y = window.innerHeight - 140 + Math.cos(angle) * 20;
+      Body.setPosition(vortex, { x, y });
+
+      for (let body of world.bodies) {
+        if (body.isStatic || body === vortex) continue;
+
+        const dx = vortex.position.x - body.position.x;
+        const dy = vortex.position.y - body.position.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < 200) {
+          const pull = 0.0005;
+          const swirl = 0.0009;
+          const angleToCenter = Math.atan2(dy, dx);
+          const fx = Math.cos(angleToCenter) * pull - Math.sin(angleToCenter) * swirl;
+          const fy = Math.sin(angleToCenter) * pull + Math.cos(angleToCenter) * swirl;
+
+          Body.applyForce(body, body.position, {
+            x: fx * (1.2 - dist / 200),
+            y: fy * (1.2 - dist / 200)
+          });
+
+          if (dist < 50) {
+            Body.setVelocity(body, {
+              x: (Math.random() - 0.5) * 6,
+              y: -10 - Math.random() * 5
+            });
+          }
+        }
+      }
+    });
+
+    // Navigation logic for game modes
+document.getElementById('btn-sandbox').addEventListener('click', () => {
+  window.location.href = './sandbox.html'; // replace with your actual game logic
+});  
+
+document.getElementById('btn-chaos').addEventListener('click', () => {
+  window.location.href = './explosionmode.html'; // or showModal('chaosSpin') etc.
+});
+
+document.getElementById('btn-float').addEventListener('click', () => {
+  window.location.href = '/float-land';
+});
+
+  </script>
+</body>
+</html>

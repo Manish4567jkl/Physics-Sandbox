@@ -430,14 +430,17 @@ function spawnPoof(x, y, z, baseColor = 0xffe29f, scaleSpeed = 0.008, fadeSpeed 
 
 
         const geometry = new THREE.SphereGeometry(0.05 + Math.random() * 0.03, 6, 6);
-        const material = new THREE.MeshBasicMaterial({
+        const material = new THREE.MeshStandardMaterial({
             color: color,
             transparent: true,
-            opacity: 0.9,
+            opacity: 0.85,
+            roughness: 0.7,       // soft surface, no harsh reflections
+            metalness: 0.2,       // subtle shimmer
+            emissive: color.clone().multiplyScalar(0.4),  // gentle glow
             depthWrite: false,
             blending: THREE.NormalBlending
+});
 
-        });
 
         const mesh = new THREE.Mesh(geometry, material);
 

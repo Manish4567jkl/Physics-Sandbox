@@ -1,6 +1,12 @@
 import * as THREE from 'three';
 import * as CANNON from "cannon-es";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { initSoundSystem, loadSound, playSound , playPositionalSound } from './soundManager.js';
+
+
+
+
+
 
 
 const scene = new THREE.Scene();
@@ -9,6 +15,19 @@ scene.background = new THREE.Color('#A7C7E7');
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(5, 10, 10);
 camera.lookAt(0, 0, 0);
+
+
+initSoundSystem(camera, scene);
+
+loadSound('boing', '/sounds/boing.wav');
+loadSound('pop', '/sounds/pop.wav');
+loadSound('sproing', '/sounds/sproing.wav');
+loadSound('magic', '/sounds/magic.mp3');
+loadSound('twinkle', '/sounds/twinkletwang.wav');
+
+
+
+
 
 const canvas = document.querySelector("canvas.explosion");
 const renderer = new THREE.WebGLRenderer({
@@ -496,7 +515,7 @@ function triggerExplosion(strength = 80) {
     const center = explosionCircle.position;
 
     boxes.forEach(({ body }) => {
-        const distance = body.position.distanceTo(center);
+        const distance = body.position.distanceTo(center); // Cannon Vec3 method
         if (distance < currentRadius) {
             const forceDirection = new CANNON.Vec3().copy(body.position).vsub(center);
             forceDirection.normalize();
@@ -505,14 +524,26 @@ function triggerExplosion(strength = 80) {
 
             // 🎇 Sparkly poof on every hit
             spawnRandomPoof(body.position.x, body.position.y, body.position.z);
+
+            // Convert Cannon Vec3 to THREE.Vector3 for positional audio
+            const soundPos = new THREE.Vector3(body.position.x, body.position.y, body.position.z);
+
+            // 💥 Play a random "hit" sound positioned at the body's location
+            const impactSounds = ['boing', 'pop', 'sproing'];
+            const soundName = impactSounds[Math.floor(Math.random() * impactSounds.length)];
+            playPositionalSound(soundName, soundPos);
         }
     });
 
-    // 💥 Central dreamy burst
+    // 💫 Central dreamy burst
     spawnRandomPoof(center.x, center.y + 1, center.z);
+
+    // Play magical burst sound positioned slightly above center
+    const burstSounds = ['magic', 'twinkletwang'];
+    const burstSound = burstSounds[Math.floor(Math.random() * burstSounds.length)];
+    const burstPos = new THREE.Vector3(center.x, center.y + 1, center.z);
+    playPositionalSound(burstSound, burstPos);
 }
-
-
 
 
 

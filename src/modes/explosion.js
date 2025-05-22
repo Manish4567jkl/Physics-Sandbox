@@ -371,47 +371,72 @@ function spawnRandomPoof(x, y, z) {
 }
 
 function spawnPoofDust(x, y, z) {
-    spawnPoof(x, y, z, 0xdcdcdc); // light gray
+    spawnPoof(x, y, z, new THREE.Color(0xdcdcdc)); // light gray
 }
 
 function spawnPoofFire(x, y, z) {
-    spawnPoof(x, y, z, 0xffc2b4); // pastel coral
+    spawnPoof(x, y, z, new THREE.Color(0xffc2b4)); // pastel coral
 }
 
 function spawnPoofMagic(x, y, z) {
-    spawnPoof(x, y, z, 0xcaaaff); // soft lavender
+    spawnPoof(x, y, z, new THREE.Color(0xcaaaff)); // soft lavender
 }
 
 function spawnPoofFairy(x, y, z) {
-    spawnPoof(x, y, z, 0xa8ffe9); // mint sparkle
+    spawnPoof(x, y, z, new THREE.Color(0xa8ffe9)); // mint sparkle
 }
 
 function spawnPoofStar(x, y, z) {
-    spawnPoof(x, y, z, 0xfff0a8); // pale gold
+    spawnPoof(x, y, z, new THREE.Color(0xfff0a8)); // pale gold
 }
 
-function spawnPoof(x, y, z, baseColor = 0xffffff, scaleSpeed = 0.008, fadeSpeed = 0.02) {
+
+
+function spawnPoof(x, y, z, baseColor = 0xffe29f, scaleSpeed = 0.008, fadeSpeed = 0.01) {
+   /*
     const pastelColors = [
-        0xffc1cc, 0xaee6e6, 0xcbb8ff, 0xffe29f, 0xa0c4ff, 0xffffb3, 0xe0bbff
+        0xffc1cc, // strawberry milk
+        0xaee6e6, // glacier mint
+        0xcbb8ff, // soft lavender
+        0xffe29f, // mango cream
+        0xa0c4ff, // baby blue
+        0xffffb3, // vanilla blush
+        0xe0bbff  // orchid haze
     ];
+*/
+
+    const pastelColors = [
+    0xff6f91, // punchy pink
+    0x6fffe9, // bright mint
+    0x9a8cff, // bold lavender
+    0xffc75f, // vibrant mango
+    0x00bfff, // strong baby blue
+    0xffff66, // bright yellow
+    0xcc99ff  // orchid haze (keep this)
+];
+
 
     const poofGroup = new THREE.Group();
     const poofParticles = [];
     const particleCount = 18 + Math.floor(Math.random() * 12);
 
     for (let i = 0; i < particleCount; i++) {
-        const color = pastelColors[Math.floor(Math.random() * pastelColors.length)];
+        // Mix baseColor with a pastel for dreamy variety
+        const base = new THREE.Color(baseColor);
+        const pastel = new THREE.Color(pastelColors[Math.floor(Math.random() * pastelColors.length)]);
+// Instead of base.lerp(pastel), swap it to pastel.lerp(base) for better saturation
+        const t = 0.2 + Math.random() * 0.3;
+        const color = pastel.clone().lerp(base, t);
+
+
         const geometry = new THREE.SphereGeometry(0.05 + Math.random() * 0.03, 6, 6);
-        const material = new THREE.MeshStandardMaterial({
+        const material = new THREE.MeshBasicMaterial({
             color: color,
             transparent: true,
-            opacity: 0.8,
-            emissive: color,
-            emissiveIntensity: 2.0,
-            roughness: 0.2,
-            metalness: 0.6,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false
+            opacity: 0.9,
+            depthWrite: false,
+            blending: THREE.NormalBlending
+
         });
 
         const mesh = new THREE.Mesh(geometry, material);
@@ -432,8 +457,8 @@ function spawnPoof(x, y, z, baseColor = 0xffffff, scaleSpeed = 0.008, fadeSpeed 
         poofParticles.push({
             mesh,
             velocity: dir,
-            scaleSpeed: scaleSpeed + Math.random() * 0.005,
-            fadeSpeed: fadeSpeed + Math.random() * 0.005
+            scaleSpeed: scaleSpeed + Math.random() * 0.002,
+            fadeSpeed: fadeSpeed + Math.random() * 0.002
         });
     }
 
@@ -461,6 +486,7 @@ function spawnPoof(x, y, z, baseColor = 0xffffff, scaleSpeed = 0.008, fadeSpeed 
 
     updatePoof();
 }
+
 
 
 function triggerExplosion(strength = 80) {

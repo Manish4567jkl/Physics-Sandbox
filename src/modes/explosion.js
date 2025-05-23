@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import * as CANNON from "cannon-es";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { initSoundSystem, loadSound, playSound , playPositionalSound } from './soundManager.js';
-
+import { resetScene } from '../utils/reset.js';
 
 
 
@@ -52,6 +52,9 @@ const world = new CANNON.World({
 });
 world.broadphase = new CANNON.SAPBroadphase(world); 
 world.allowSleep = true; 
+world.sleepSpeedLimit = 0.1;  // velocity below this will start sleeping
+world.sleepTimeLimit = 1;     // after 1 second below speed, body sleeps
+
 
 const timeStep = 1 / 60;
 
@@ -183,7 +186,8 @@ world.addBody(ceilingBody);
 const boxes = [];
 
 
-function spawnBox(x, y, z, size = 1, colorHex = 0x8844aa) {
+function spawnBox(x, y, z, size = 1, colorHex = 0x8844aa, mass = 1) {
+    // Create mesh
     const boxGeo = new THREE.BoxGeometry(size, size, size);
     const boxMat = new THREE.MeshStandardMaterial({ color: colorHex });
     const boxMesh = new THREE.Mesh(boxGeo, boxMat);
@@ -191,19 +195,27 @@ function spawnBox(x, y, z, size = 1, colorHex = 0x8844aa) {
     boxMesh.position.set(x, y, z);
     scene.add(boxMesh);
 
-    const boxShape = new CANNON.Box(new CANNON.Vec3(size / 2, size / 2, size / 2));
+    // Create physics shape and body
+    const halfSize = size / 2;
+    const boxShape = new CANNON.Box(new CANNON.Vec3(halfSize, halfSize, halfSize));
     const boxBody = new CANNON.Body({
-        mass: 1,
+        mass: mass,
         shape: boxShape,
         position: new CANNON.Vec3(x, y, z)
     });
+
+    // Zero motion for calm, non-chaotic box spawning
     boxBody.velocity.set(0, 0, 0);
     boxBody.angularVelocity.set(0, 0, 0);
 
     world.addBody(boxBody);
 
     boxes.push({ mesh: boxMesh, body: boxBody });
+
+
+    return { mesh: boxMesh, body: boxBody }
 }
+
 
 
 function spawnSphere(x, y, z, radius = 1, colorHex = 0x44aa88) {
@@ -227,7 +239,12 @@ function spawnSphere(x, y, z, radius = 1, colorHex = 0x44aa88) {
 }
 
 
-function spawnCylinder(x, y, z, radiusTop = 1, radiusBottom = 1, height = 2, colorHex = 0xaa8844) {
+function spawnCylinder(x, y, z, radiusTop = 1, radiusBottom = 1, height = 2, colorHex = 0xffc1cc, mass = 1) {
+    // Clamp radii to avoid Cannon’s existential crisis
+    radiusTop = Math.max(0.001, radiusTop);
+    radiusBottom = Math.max(0.001, radiusBottom);
+
+    // THREE.js mesh
     const cylGeo = new THREE.CylinderGeometry(radiusTop, radiusBottom, height, 32);
     const cylMat = new THREE.MeshStandardMaterial({ color: colorHex });
     const cylMesh = new THREE.Mesh(cylGeo, cylMat);
@@ -235,15 +252,16 @@ function spawnCylinder(x, y, z, radiusTop = 1, radiusBottom = 1, height = 2, col
     cylMesh.position.set(x, y, z);
     scene.add(cylMesh);
 
-    const cylShape = new CANNON.Cylinder(radiusTop, radiusBottom, height, 32);
+    // CANNON.js shape
+    const cylShape = new CANNON.Cylinder(radiusTop, radiusBottom, height, 16); // 16 slices is more stable than 32
 
-
+    // Rotate shape upright
     const quat = new CANNON.Quaternion();
     quat.setFromEuler(-Math.PI / 2, 0, 0);
     cylShape.transformAllPoints(new CANNON.Vec3(), quat);
 
     const cylBody = new CANNON.Body({
-        mass: 1,
+        mass: mass,
         shape: cylShape,
         position: new CANNON.Vec3(x, y, z),
         quaternion: quat.clone()
@@ -252,84 +270,78 @@ function spawnCylinder(x, y, z, radiusTop = 1, radiusBottom = 1, height = 2, col
     world.addBody(cylBody);
 
     boxes.push({ mesh: cylMesh, body: cylBody });
+    return { mesh: cylMesh, body: cylBody }; 
 }
-
 
 function spawnHouse(x, z) {
     const baseSize = 2;
     const baseHeight = 1;
+    const upperSize = 1.2;
+    const upperHeight = 0.8;
 
-    // Base
-    spawnBox(x, baseHeight / 2, z, baseSize, 0xB5651D); // brown
+    const baseY = baseHeight / 2;
 
-    // Roof mesh (visual only)
-    const roofGeo = new THREE.ConeGeometry(baseSize * 0.9, baseHeight, 4);
-    const roofMat = new THREE.MeshStandardMaterial({ color: 0x8B0000 }); // dark red
-    const roofMesh = new THREE.Mesh(roofGeo, roofMat);
-    roofMesh.position.set(x, baseHeight + baseHeight / 2, z);
-    roofMesh.castShadow = true;
-    scene.add(roofMesh);
+    // Base block (mass 1 or whatever)
+    const base = spawnBox(x, baseY, z, baseSize, 0xffe29f);
+    base.body.sleep();
+    base.body.allowSleep = true;
 
-    // Roof body (approximate with a ConvexPolyhedron - pyramid)
-    const half = (baseSize * 0.9) / 2;
-    const roofHeight = baseHeight;
+    // Upper block (smaller cube, offset for style)
+    const upperY = baseHeight + upperHeight / 2;
+    const offsetX = 0.3;
+    const offsetZ = -0.3;
+    const upper = spawnBox(x + offsetX, upperY, z + offsetZ, upperSize, 0xe0bbff);
+    upper.body.sleep();
+    upper.body.allowSleep = true;
 
-    const verts = [
-        new CANNON.Vec3(-half, 0, -half),
-        new CANNON.Vec3( half, 0, -half),
-        new CANNON.Vec3( half, 0,  half),
-        new CANNON.Vec3(-half, 0,  half),
-        new CANNON.Vec3(0, roofHeight, 0) // top vertex
-    ];
-
-    const faces = [
-        [0, 1, 2],
-        [0, 2, 3],
-        [0, 1, 4],
-        [1, 2, 4],
-        [2, 3, 4],
-        [3, 0, 4]
-    ];
-
-    const roofShape = new CANNON.ConvexPolyhedron({ vertices: verts, faces });
-    const roofBody = new CANNON.Body({
-        mass: 1,
-        position: new CANNON.Vec3(x, baseHeight + baseHeight / 2, z),
-        shape: roofShape
-    });
-
-    world.addBody(roofBody);
-    boxes.push({ mesh: roofMesh, body: roofBody });
+    // Chimney / tech dome
+    const cylHeight = 0.6;
+    const cylRadius = 0.25;
+    const cylY = upperY + upperHeight / 2 + cylHeight / 2;
+    const chimney = spawnCylinder(x + offsetX, cylY, z + offsetZ, cylRadius, cylRadius, cylHeight, 0xcbb8ff);
+    chimney.body.sleep();
+    chimney.body.allowSleep = true;
 }
 
+
+
+
+
 function spawnTower(x, z, height = 5) {
-    
+    let currentY = 0;
     for (let i = 0; i < height; i++) {
-        const size = 0.9+ Math.random() * 0.7; 
+        const size = 0.9 + Math.random() * 0.7;
         const color = new THREE.Color(`hsl(${Math.random() * 360}, 70%, 60%)`);
-        spawnBox(x, size / 2 + i * size, z, size, color.getHex());
+        currentY += size / 2;
+        spawnBox(x, currentY, z, size, color.getHex());
+        currentY += size / 2;
     }
 }
 
 function spawnTown(centerX = 0, centerZ = 0) {
-    const spacing = 6;
+    const spacing = 7;
+    const gridSize = 1; // 4x4 town: from -1 to 2
 
-    for (let row = -1; row <= 1; row++) {
-        for (let col = -1; col <= 1; col++) {
+    for (let row = -gridSize; row <= gridSize + 1; row++) {
+        for (let col = -gridSize; col <= gridSize + 1; col++) {
             const x = centerX + col * spacing;
             const z = centerZ + row * spacing;
-            
+
             const rand = Math.random();
+
             if (rand < 0.4) {
                 spawnHouse(x, z);
-            } else if (rand < 0.7) {
-                spawnTower(x, z, 3 + Math.floor(Math.random() * 3)); 
+            } else if (rand < 0.75) {
+                const floors = 2 + Math.floor(Math.random() * 2); // 2–3 floors
+                spawnTower(x, z, floors);
             } else {
-                spawnCylinder(x, 1.5, z, 1, 1, 3, 0x888888); 
+                const height = 3;
+                spawnCylinder(x, height / 2, z, 1, 1, height, 0xa0c4ff, 1); // Mass set
             }
         }
     }
 }
+
 
 
 
@@ -346,7 +358,7 @@ function clearBoxes() {
 clearBoxes();
 
 clearBoxes();
-spawnTown(0, 0); 
+
 
 for (let i = 0; i < 50; i++) {
     const x = (Math.random() - 0.5) * 60;
@@ -375,12 +387,15 @@ for (let i = 0; i < 50; i++) {
         spawnCylinder(x, y, z, radiusTop, radiusBottom, height, color.getHex());
     }
 }
-spawnTown(-40, 30);
-spawnTown(40, -30);
-spawnTown(-60, -60); // Far bottom-left
-spawnTown(60, 60);   // Far top-right
-spawnTown(-70, 20);  // Far left-ish
-spawnTown(20, -70);  // Deep south-ish
+spawnTown(0, 0); 
+spawnTown(-30, 30);   // Top-left
+spawnTown(30, 30);    // Top-right
+spawnTown(-30, -30);  // Bottom-left
+spawnTown(30, -30);   // Bottom-right
+spawnTown(0, 0);      // Center town
+
+
+
 
 
 function spawnRandomPoof(x, y, z) {
@@ -414,13 +429,8 @@ function spawnPoofStar(x, y, z) {
 function spawnPoof(x, y, z, baseColor = 0xffe29f, scaleSpeed = 0.008, fadeSpeed = 0.01) {
    /*
     const pastelColors = [
-        0xffc1cc, // strawberry milk
-        0xaee6e6, // glacier mint
-        0xcbb8ff, // soft lavender
-        0xffe29f, // mango cream
-        0xa0c4ff, // baby blue
-        0xffffb3, // vanilla blush
-        0xe0bbff  // orchid haze
+   
+       
     ];
 */
 
@@ -431,7 +441,13 @@ function spawnPoof(x, y, z, baseColor = 0xffe29f, scaleSpeed = 0.008, fadeSpeed 
     0xffc75f, // vibrant mango
     0x00bfff, // strong baby blue
     0xffff66, // bright yellow
-    0xcc99ff  // orchid haze (keep this)
+    0xcc99ff,  // orchid haze 
+    0xffc1cc, // strawberry milk
+    0xaee6e6, // glacier mint
+    0xcbb8ff, // soft lavender
+    0xffe29f, // mango cream
+    0xa0c4ff, // baby blue
+    0xffffb3, // vanilla blush
 ];
 
 
@@ -510,12 +526,32 @@ function spawnPoof(x, y, z, baseColor = 0xffe29f, scaleSpeed = 0.008, fadeSpeed 
 }
 
 
-
 function triggerExplosion(strength = 80) {
     const center = explosionCircle.position;
 
+    // 🌈 Random pastel RGB color (soft hue, high lightness)
+    const pastelColors = [0xffcaff, 0xaaffff, 0xfff5b5, 0xd5bfff, 0xbaffc9];
+    const chosenColor = pastelColors[Math.floor(Math.random() * pastelColors.length)];
+
+    // 🌟 Big RGB light burst
+    const flash = new THREE.PointLight(chosenColor, 180, 250); // Bigger light, bigger range
+    flash.position.set(center.x, center.y + 1, center.z);
+    scene.add(flash);
+
+    // 🌙 Smooth fade-out over time
+    let flashDecay = 1;
+    const fadeInterval = setInterval(() => {
+        flash.intensity -= 0.1;
+        flashDecay -= 0.1;
+        if (flash.intensity <= 0 || flashDecay <= 0) {
+            clearInterval(fadeInterval);
+            scene.remove(flash);
+        }
+    }, 30);
+
+    // 💥 Physics + Sparkles + Sounds
     boxes.forEach(({ body }) => {
-        const distance = body.position.distanceTo(center); // Cannon Vec3 method
+        const distance = body.position.distanceTo(center);
         if (distance < currentRadius) {
             const forceDirection = new CANNON.Vec3().copy(body.position).vsub(center);
             forceDirection.normalize();
@@ -525,21 +561,19 @@ function triggerExplosion(strength = 80) {
             // 🎇 Sparkly poof on every hit
             spawnRandomPoof(body.position.x, body.position.y, body.position.z);
 
-            // Convert Cannon Vec3 to THREE.Vector3 for positional audio
+            // 🔊 Impact sound at body position
             const soundPos = new THREE.Vector3(body.position.x, body.position.y, body.position.z);
-
-            // 💥 Play a random "hit" sound positioned at the body's location
             const impactSounds = ['boing', 'pop', 'sproing'];
             const soundName = impactSounds[Math.floor(Math.random() * impactSounds.length)];
             playPositionalSound(soundName, soundPos);
         }
     });
 
-    // 💫 Central dreamy burst
+    // 💫 Central dreamy burst poof
     spawnRandomPoof(center.x, center.y + 1, center.z);
 
-    // Play magical burst sound positioned slightly above center
-    const burstSounds = ['magic', 'twinkletwang'];
+    // 🔊 Magical central sound
+    const burstSounds = ['boing','pop', 'twinkletwang'];
     const burstSound = burstSounds[Math.floor(Math.random() * burstSounds.length)];
     const burstPos = new THREE.Vector3(center.x, center.y + 1, center.z);
     playPositionalSound(burstSound, burstPos);
@@ -557,6 +591,15 @@ window.addEventListener('mousedown', (e) => {
     }
 });
 window.addEventListener('contextmenu', e => e.preventDefault()); 
+
+const initialPositions = boxes.map(({ body }) => body.position.clone());
+
+// reset button listener:
+const resetButton = document.getElementById('reset-button');
+resetButton.addEventListener('click', () => {
+  resetScene(boxes, world, initialPositions);
+});
+
 
 
 const animate = () => {

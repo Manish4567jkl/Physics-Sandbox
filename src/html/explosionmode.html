@@ -1,13 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <title>Explosion-Mode</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Explosion-Mode</title>
 </head>
-<body>
-    <canvas class="explosion"></canvas>
-    <script type="module" src="../modes/explosion.js"></script>
+<body class="relative">
+  <!-- Canvas takes full screen -->
+  <canvas class="explosion w-screen h-screen block"></canvas>
+
+  <!-- 🔁 Reset Button Overlay (positioned over canvas) -->
+  <div class="absolute top-4 right-4 z-50">
+    <div class="p-2 transform skew-x-[-10deg] bg-rose-300 shadow-md border border-rose-400 rounded-md">
+      <div class="transform skew-x-[10deg]">
+        <button id="reset-button"
+          class="text-xs font-bold text-gray-800 uppercase tracking-wide px-4 py-1 bg-rose-400 border border-rose-500 
+                 rounded-md shadow-sm hover:bg-rose-500 transition-colors duration-150 active:scale-95">
+          Reset Scene
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="../modes/explosion.js"></script>
 </body>
 </html>

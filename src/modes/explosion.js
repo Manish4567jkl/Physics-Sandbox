@@ -3,6 +3,7 @@ import * as CANNON from "cannon-es";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { initSoundSystem, loadSound, playSound , playPositionalSound } from './soundManager.js';
 import { resetScene } from '../utils/reset.js';
+//import { spawnBox, spawnSphere, spawnCylinder, spawnHouse, spawnTower, spawnTown, boxes } from '../utils/spawnUtils.js';
 
 
 
@@ -10,7 +11,10 @@ import { resetScene } from '../utils/reset.js';
 
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#A7C7E7');
+const originalBackground = new THREE.Color('#A7C7E7'); // Daydream sky
+const midnightBackground = new THREE.Color('#0b1e34'); // Cozy midnight velvet
+scene.background = new THREE.Color('#A7C7E7'); // soft baby blue
+
 
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(5, 10, 10);
@@ -60,7 +64,7 @@ const timeStep = 1 / 60;
 
 const groundMesh = new THREE.Mesh(
     new THREE.PlaneGeometry(200, 200),
-    new THREE.MeshStandardMaterial({ color: "#D08C9B", side: THREE.DoubleSide })
+    new THREE.MeshStandardMaterial({ color: "#fdf0d5", side: THREE.DoubleSide })
 );
 groundMesh.rotation.x = -Math.PI / 2;
 groundMesh.receiveShadow = true;
@@ -85,6 +89,34 @@ const light = new THREE.DirectionalLight(0xffffff, 2);
 light.position.set(5, 10, 5);
 light.castShadow = true;
 scene.add(light);
+
+
+const moonLight = new THREE.DirectionalLight(0x8ab9ff, 0.15);
+moonLight.position.set(-5, 10, -5);
+moonLight.castShadow = false; 
+moonLight.visible = false; 
+scene.add(moonLight);
+
+
+let lightingEnabled = true;
+
+const lightGroundColor = '#fdf0d5'; 
+const darkGroundColor = '#4B3B57';  
+
+document.getElementById('toggle-lighting').addEventListener('click', () => {
+  lightingEnabled = !lightingEnabled;
+
+  ambientLight.visible = lightingEnabled;
+  light.visible = lightingEnabled;
+
+  moonLight.visible = !lightingEnabled; // moonlight only in dark mode
+
+  scene.background = lightingEnabled ? originalBackground : midnightBackground;
+  groundMesh.material.color.set(lightingEnabled ? lightGroundColor : darkGroundColor);
+});
+
+
+
 
 
 let currentRadius = 2;

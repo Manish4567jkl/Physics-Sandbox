@@ -3,12 +3,6 @@ import * as CANNON from "cannon-es";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { initSoundSystem, loadSound, playSound , playPositionalSound } from './soundManager.js';
 import { resetScene } from '../utils/reset.js';
-//import { spawnBox, spawnSphere, spawnCylinder, spawnHouse, spawnTower, spawnTown, boxes } from '../utils/spawnUtils.js';
-
-
-
-
-
 
 const scene = new THREE.Scene();
 const originalBackground = new THREE.Color('#A7C7E7'); // Daydream sky
@@ -45,7 +39,7 @@ renderer.shadowMap.type = THREE.PCFShadowMap;
 
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
-controls.maxDistance = 200;
+controls.maxDistance = 300;
 controls.minDistance = 20;
 controls.enableZoom = true;
 
@@ -85,13 +79,13 @@ scene.add(gridHelper);
 const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
 scene.add(ambientLight);
 
-const light = new THREE.DirectionalLight(0xffffff, 2);
+const light = new THREE.DirectionalLight(0xffffff, 1);
 light.position.set(5, 10, 5);
 light.castShadow = true;
 scene.add(light);
 
 
-const moonLight = new THREE.DirectionalLight(0x8ab9ff, 0.15);
+const moonLight = new THREE.DirectionalLight(0x8ab9ff, 1.9);
 moonLight.position.set(-5, 10, -5);
 moonLight.castShadow = false; 
 moonLight.visible = false; 
@@ -459,12 +453,7 @@ function spawnPoofStar(x, y, z) {
 
 
 function spawnPoof(x, y, z, baseColor = 0xffe29f, scaleSpeed = 0.008, fadeSpeed = 0.01) {
-   /*
-    const pastelColors = [
-   
-       
-    ];
-*/
+  
 
     const pastelColors = [
     0xff6f91, // punchy pink
@@ -488,10 +477,10 @@ function spawnPoof(x, y, z, baseColor = 0xffe29f, scaleSpeed = 0.008, fadeSpeed 
     const particleCount = 18 + Math.floor(Math.random() * 12);
 
     for (let i = 0; i < particleCount; i++) {
-        // Mix baseColor with a pastel for dreamy variety
+        
         const base = new THREE.Color(baseColor);
         const pastel = new THREE.Color(pastelColors[Math.floor(Math.random() * pastelColors.length)]);
-// Instead of base.lerp(pastel), swap it to pastel.lerp(base) for better saturation
+
         const t = 0.2 + Math.random() * 0.3;
         const color = pastel.clone().lerp(base, t);
 
@@ -561,8 +550,39 @@ function spawnPoof(x, y, z, baseColor = 0xffe29f, scaleSpeed = 0.008, fadeSpeed 
 function triggerExplosion(strength = 80) {
     const center = explosionCircle.position;
 
-    // 🌈 Random pastel RGB color (soft hue, high lightness)
-    const pastelColors = [0xffcaff, 0xaaffff, 0xfff5b5, 0xd5bfff, 0xbaffc9];
+    
+   const pastelColors = [
+  0xffcaff, // soft pink
+  0xaaffff, // icy aqua
+  0xfff5b5, // buttery pastel yellow
+  0xd5bfff, // gentle lilac
+  0xbaffc9, // minty breeze
+
+  0xffb3ba, // baby strawberry milk
+  0xffdfba, // peachy keen
+  0xffffba, // soft lemon pop
+  0xbaffc9, // fresh mint (duplicate, but good)
+  0xbae1ff, // dreamy sky
+
+  0xe0bbff, // lavender love
+  0xffe0f0, // cotton candy blush
+  0xd0f4de, // cucumber spa day
+  0xf0f0ff, // snowflake shimmer
+  0xffc6ff, // bubblegum haze
+
+  0xcaf7e3, // seafoam sorbet
+  0xfff6c3, // mellow sunbeam
+  0xf6dfeb, // fairy floss pink
+  0xb3f8ff, // cool pop ice
+  0xfddde6, // rose quartz mist
+
+  0xffe2b3, // creamsicle daydream
+  0xe3f6ff, // sky ripple
+  0xffccf9, // cherry blossom smoke
+  0xd7e4ff, // morning dew on petals
+  0xc1fff2  // mint cloud drift
+];
+
     const chosenColor = pastelColors[Math.floor(Math.random() * pastelColors.length)];
 
     // 🌟 Big RGB light burst

@@ -175,6 +175,7 @@ function spawnCube() {
     newCubeMesh.castShadow = true;
     scene.add(newCubeMesh);
     objectsToUpdate.push({ body: newCubeBody, mesh: newCubeMesh });
+    
 }
 
 function spawnSphere() {

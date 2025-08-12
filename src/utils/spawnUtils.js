@@ -1,7 +1,4 @@
-// spawnUtils.js
 
-// These must be defined in the global scope of your main file:
-// scene, world, and boxes
 
 function spawnBox(x, y, z, size = 1, colorHex = 0x8844aa, mass = 1) {
     const boxGeo = new THREE.BoxGeometry(size, size, size);

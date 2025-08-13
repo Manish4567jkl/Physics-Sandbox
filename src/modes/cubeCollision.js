@@ -246,6 +246,73 @@ window.addEventListener('resize', () => {
 });
 
 
+let nukeReady = true;
+
+window.addEventListener('keydown', (e) => {
+  if (e.key.toLowerCase() === 'r' && nukeReady) {
+    triggerCubeNuke();
+  }
+});
+
+function triggerCubeNuke() {
+  nukeReady = false;
+
+  const nukeRadius = 30;
+  const nukeForce = 1500;
+  const chargeDuration = 1500; // ms
+  const scaleMax = 1.5;
+  const startTime = performance.now();
+
+  const originalScale = playerMesh.scale.clone();
+  const originalRotation = playerMesh.rotation.clone();
+
+  function chargeStep() {
+    const now = performance.now();
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / chargeDuration, 1);
+
+    // Gradual scale with slight bounce
+    const scale = 1 + (scaleMax - 1) * progress + Math.sin(progress * Math.PI * 4) * 0.05;
+    playerMesh.scale.set(scale, scale, scale);
+
+    // Glow pulse
+    playerMaterial.emissiveIntensity = 1.5 + Math.sin(progress * Math.PI * 10) * 1.5;
+
+    // Tiny random rotation shake
+    playerMesh.rotation.x = originalRotation.x + (Math.random() - 0.5) * 0.1;
+    playerMesh.rotation.y = originalRotation.y + (Math.random() - 0.5) * 0.1;
+    playerMesh.rotation.z = originalRotation.z + (Math.random() - 0.5) * 0.1;
+
+    if (progress < 1) {
+      requestAnimationFrame(chargeStep);
+    } else {
+      // Apply radial impulse to all cubes
+      cubes.forEach(({ body }) => {
+        const dir = body.position.vsub(playerBody.position);
+        const dist = dir.length();
+        if (dist < nukeRadius) {
+          dir.normalize();
+          const strength = nukeForce * (1 - dist / nukeRadius);
+          body.applyImpulse(dir.scale(strength), body.position);
+        }
+      });
+
+      // Reset visuals
+      playerMesh.scale.copy(originalScale);
+      playerMesh.rotation.copy(originalRotation);
+      playerMaterial.emissiveIntensity = 1.5;
+
+      // Cooldown
+      setTimeout(() => {
+        nukeReady = true;
+      }, 2000);
+    }
+  }
+
+  chargeStep();
+}
+
+
 
 const clock = new THREE.Clock();
 function animate() {

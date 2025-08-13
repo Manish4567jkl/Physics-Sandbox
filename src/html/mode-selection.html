@@ -1,52 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Pastel Chaos Simulator</title>
-  <style>
-    html, body {
-      margin: 0; padding: 0; height: 100%; overflow: hidden;
-      font-family: 'Poppins', sans-serif;
-      transition: background 1s ease;
-    }
-    #ui {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 16px;
-      z-index: 10;
-    }
-    button {
-      background: rgba(255,255,255,0.4);
-      backdrop-filter: blur(12px);
-      border: none;
-      padding: 12px 20px;
-      border-radius: 18px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: transform 0.2s ease, background 0.3s ease;
-    }
-    button:hover {
-      background: rgba(255,255,255,0.6);
-      transform: translateY(-3px);
-    }
-    #matter-container { position: absolute; inset: 0; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Interactive Pastel Chaos</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  html, body {
+    margin: 0; padding: 0; overflow: hidden; height: 100%;
+    background: #f0f5ff;
+    font-family: 'Poppins', sans-serif;
+  }
+  #matter-container {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+  #ui {
+    position: fixed;
+    top: 20px; left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 16px;
+    z-index: 10;
+  }
+  .mode-button {
+    padding: 12px 20px;
+    border-radius: 0.5rem; /* rounded-md */
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    transform: skewX(-10deg);
+    box-shadow: 0 4px 6px rgb(0 0 0 / 0.1);
+    border-width: 1px;
+    transition: transform 0.2s ease, background-color 0.3s ease;
+  }
+  .mode-button > div {
+    transform: skewX(10deg);
+    text-align: center;
+    color: white;
+    font-size: 1.125rem; /* text-lg */
+  }
+  .mode-button:focus-visible {
+    outline: 2px solid #fbbf24; /* yellow-400 */
+    outline-offset: 2px;
+  }
+  .mode-button:hover {
+    transform: skewX(-10deg) scale(1.05);
+  }
+  /* Pastel backgrounds & borders */
+  .sandbox {
+    background-color: #fbb6ce; /* pink-300 */
+    border-color: #f472b6; /* pink-400 */
+  }
+  .explosions {
+    background-color: #fde68a; /* yellow-300 */
+    border-color: #fbbf24; /* yellow-400 */
+  }
+  .cube-collisions {
+    background-color: #c4b5fd; /* purple-300 */
+    border-color: #a78bfa; /* purple-400 */
+  }
+</style>
 </head>
 <body>
-  
-   <div id="ui">
-  <button onclick="window.location.href='./sandbox.html'">SANDBOX</button>
-  <button onclick="window.location.href='./explosionmode.html'"> EXPLOSIONS</button>
-  <button onclick="window.location.href='./cubecollision.html'">CUBE COLLISIONS</button>
+
+<div id="matter-container"></div>
+
+<div id="ui" role="navigation" aria-label="Mode selector">
+  <div
+    class="mode-button sandbox"
+    tabindex="0"
+    role="button"
+    aria-label="Sandbox Mode"
+    onclick="window.location.href='./sandbox.html'"
+    onkeydown="if(event.key==='Enter') window.location.href='./sandbox.html'"
+  >
+    <div>SANDBOX</div>
+  </div>
+
+  <div
+    class="mode-button explosions"
+    tabindex="0"
+    role="button"
+    aria-label="Explosions Mode"
+    onclick="window.location.href='./explosionmode.html'"
+    onkeydown="if(event.key==='Enter') window.location.href='./explosionmode.html'"
+  >
+    <div>EXPLOSIONS</div>
+  </div>
+
+  <div
+    class="mode-button cube-collisions"
+    tabindex="0"
+    role="button"
+    aria-label="Cube Collisions Mode"
+    onclick="window.location.href='./cubecollision.html'"
+    onkeydown="if(event.key==='Enter') window.location.href='./cubecollision.html'"
+  >
+    <div>CUBE COLLISIONS</div>
+  </div>
 </div>
 
-  <div id="matter-container"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<script type="module" src="../modes/modeSelection.js"></script>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
-  <script src="../modes/modeSelection.js"></script>
 </body>
 </html>

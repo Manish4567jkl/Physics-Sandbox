@@ -1,129 +1,162 @@
-const { Engine, Render, Runner, World, Bodies, Body, Events } = Matter;
+import Matter from 'https://cdn.skypack.dev/matter-js';
 
-const engine = Engine.create();
-const world = engine.world;
+(() => {
+  const {
+    Engine,
+    Render,
+    Runner,
+    World,
+    Bodies,
+    Body,
+    Events,
+    Mouse,
+    MouseConstraint
+  } = Matter;
 
-const container = document.getElementById("matter-container");
-const render = Render.create({
-  element: container,
-  engine: engine,
-  options: {
-    width: window.innerWidth,
-    height: window.innerHeight,
-    wireframes: false,
-    background: "transparent"
-  }
-});
-Render.run(render);
-Runner.run(Runner.create(), engine);
+  const container = document.getElementById('matter-container');
+  let width = window.innerWidth;
+  let height = window.innerHeight;
 
-const pastelColors = [
-  "#ffd6e0", "#e0ffe4", "#e0f7fa", "#fff7d6",
-  "#ffe6cc", "#d6f0ff", "#f7e0ff", "#ffebf2"
-];
+  const engine = Engine.create();
+  engine.gravity.y = 0;
 
-const walls = [
-  Bodies.rectangle(window.innerWidth / 2, window.innerHeight + 60, window.innerWidth, 120, { isStatic: true }),
-  Bodies.rectangle(window.innerWidth / 2, -60, window.innerWidth, 120, { isStatic: true }),
-  Bodies.rectangle(-60, window.innerHeight / 2, 120, window.innerHeight, { isStatic: true }),
-  Bodies.rectangle(window.innerWidth + 60, window.innerHeight / 2, 120, window.innerHeight, { isStatic: true })
-];
-World.add(world, walls);
+  const world = engine.world;
 
-function randomPastelShape(x, y) {
-  const opts = {
-    restitution: 0.9,
-    frictionAir: 0.02,
-    render: {
-      fillStyle: pastelColors[Math.floor(Math.random() * pastelColors.length)],
-      strokeStyle: "rgba(255,255,255,0.6)",
-      lineWidth: 2
+  const render = Render.create({
+    element: container,
+    engine: engine,
+    options: {
+      width,
+      height,
+      wireframes: false,
+      background: 'transparent',
+      pixelRatio: window.devicePixelRatio,
     }
-  };
-  const shapes = [
-    () => Bodies.circle(x, y, 15 + Math.random() * 20, opts),
-    () => Bodies.rectangle(x, y, 25 + Math.random() * 20, 25 + Math.random() * 20, opts),
-    () => Bodies.polygon(x, y, 5, 20 + Math.random() * 15, opts)
+  });
+  Render.run(render);
+  Runner.run(Runner.create(), engine);
+
+  const walls = [
+    Bodies.rectangle(width / 2, height + 60, width, 120, { isStatic: true }),
+    Bodies.rectangle(width / 2, -60, width, 120, { isStatic: true }),
+    Bodies.rectangle(-60, height / 2, 120, height, { isStatic: true }),
+    Bodies.rectangle(width + 60, height / 2, 120, height, { isStatic: true }),
   ];
-  return shapes[Math.floor(Math.random() * shapes.length)]();
-}
-
-function spawnShapes(count = 30) {
-  for (let i = 0; i < count; i++) {
-    World.add(world, randomPastelShape(Math.random() * window.innerWidth, -50));
-  }
-}
-
-function clearWorld() {
-  World.clear(world, false);
   World.add(world, walls);
-}
 
-// Mode logic
-function setSandboxMode() {
-  clearWorld();
-  engine.world.gravity.y = 0.3;
-  spawnShapes(40);
-}
+  // More vivid pastel colors for that extra pop
+  const pastelColors = [
+    '#FFB6C1', '#A1C4FD', '#FFD700', '#98FB98', '#FFDAC1',
+    '#E0BBE4', '#D5AAFF', '#B5EAD7', '#FF9AA2', '#FFB347',
+    '#AFF8DB', '#B28DFF', '#FFFFD1', '#FFABAB', '#FFC3A0',
+    '#F8B195', '#C1E1C1', '#FFDEAD', '#E6E6FA', '#C3FDB8',
+    '#FAD0C4', '#F1F0C0', '#D0F0C0', '#FDC5F5', '#C2F0FC',
+    '#FFE2E2', '#D9F3FF', '#FFF4E0', '#E2F0CB', '#FCE1E4',
+    '#F0E5CF', '#FFDBE9', '#DCF8C6', '#F3D1F4', '#F0C5C5',
+    '#F8E9A1', '#EAD7D1', '#C6D8D3', '#FBE4D8', '#F0F8FF'
+  ];
 
-function setChaosMode() {
-  clearWorld();
-  engine.world.gravity.y = 0.2;
-  spawnShapes(60);
+  const shapes = [];
 
-  const chaosCore = Bodies.circle(window.innerWidth / 2, window.innerHeight / 2, 80, {
-    isStatic: true,
-    render: { fillStyle: "rgba(255,255,255,0.15)" }
-  });
-  World.add(world, chaosCore);
-
-  let t = 0;
-  Events.on(engine, "beforeUpdate", () => {
-    t += 0.02;
-    Body.setPosition(chaosCore, {
-      x: window.innerWidth / 2 + Math.sin(t) * 200,
-      y: window.innerHeight / 2 + Math.cos(t) * 150
-    });
-
-    for (let body of world.bodies) {
-      if (body.isStatic || body === chaosCore) continue;
-      const dx = chaosCore.position.x - body.position.x;
-      const dy = chaosCore.position.y - body.position.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < 250) {
-        const pull = 0.0008;
-        const swirl = 0.0012;
-        const angle = Math.atan2(dy, dx);
-        const fx = Math.cos(angle) * pull - Math.sin(angle) * swirl;
-        const fy = Math.sin(angle) * pull + Math.cos(angle) * swirl;
-        Body.applyForce(body, body.position, { x: fx, y: fy });
-      }
-    }
-  });
-}
-
-function setCubeClashMode() {
-  clearWorld();
-  engine.world.gravity.y = 1.2;
-  for (let i = 0; i < 40; i++) {
+  function createShape(x, y) {
     const opts = {
-      restitution: 0.4,
+      restitution: 1.2,
+      frictionAir: 0.05,
+      density: 0.01,
       render: {
         fillStyle: pastelColors[Math.floor(Math.random() * pastelColors.length)],
-        strokeStyle: "rgba(255,255,255,0.6)",
+        strokeStyle: 'rgba(255, 255, 255, 0.3)',
         lineWidth: 2
       }
     };
-    World.add(world, Bodies.rectangle(
-      Math.random() * window.innerWidth,
-      Math.random() * -200,
-      30, 30, opts
-    ));
+
+    const shapeTypes = [
+      () => Bodies.circle(x, y, 15 + Math.random() * 15, opts),
+      () => Bodies.rectangle(x, y, 30 + Math.random() * 20, 30 + Math.random() * 20, opts),
+      () => Bodies.polygon(x, y, 5, 20 + Math.random() * 15, opts),
+      () => Bodies.polygon(x, y, 6, 18 + Math.random() * 15, opts)
+    ];
+
+    const shape = shapeTypes[Math.floor(Math.random() * shapeTypes.length)]();
+    World.add(world, shape);
+    shapes.push(shape);
+    return shape;
   }
-}
 
-// Button bindings
+  // Spawn initial shapes with more color diversity
+  for (let i = 0; i < 55; i++) {
+    createShape(Math.random() * width, Math.random() * height);
+  }
 
+  function radialBurst(x, y, radius = 130, strength = 0.4) {
+    shapes.forEach(body => {
+      const dx = body.position.x - x;
+      const dy = body.position.y - y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < radius) {
+        const forceMagnitude = strength * (1 - dist / radius);
+        const angle = Math.atan2(dy, dx);
+        Body.applyForce(body, body.position, {
+          x: Math.cos(angle) * forceMagnitude,
+          y: Math.sin(angle) * forceMagnitude,
+        });
+      }
+    });
+  }
 
-// Start in sandbox mode
-setSandboxMode();
+  render.canvas.addEventListener('pointerdown', e => {
+    if (e.target.closest('#ui')) return; // ignore UI clicks
+
+    const rect = render.canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const newShape = createShape(x, y);
+
+    // Quick flash effect on new shape
+    const originalFill = newShape.render.fillStyle;
+    newShape.render.fillStyle = '#ffffff';
+    setTimeout(() => {
+      newShape.render.fillStyle = originalFill;
+    }, 150);
+
+    radialBurst(x, y);
+  });
+
+  const mouse = Mouse.create(render.canvas);
+  const mouseConstraint = MouseConstraint.create(engine, {
+    mouse,
+    constraint: { stiffness: 0.12, render: { visible: false } }
+  });
+  World.add(world, mouseConstraint);
+
+  window.addEventListener('resize', () => {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    render.canvas.width = width;
+    render.canvas.height = height;
+    render.options.width = width;
+    render.options.height = height;
+
+    Body.setPosition(walls[0], { x: width / 2, y: height + 60 });
+    Body.setPosition(walls[1], { x: width / 2, y: -60 });
+    Body.setPosition(walls[2], { x: -60, y: height / 2 });
+    Body.setPosition(walls[3], { x: width + 60, y: height / 2 });
+  });
+
+  // Smooth fade & redirect on button clicks
+  function fadeAndRedirect(url) {
+    let opacity = 1;
+    const fade = () => {
+      opacity -= 0.04;
+      document.body.style.background = `rgba(240, 245, 255, ${opacity})`;
+      if (opacity > 0) requestAnimationFrame(fade);
+      else window.location.href = url;
+    };
+    fade();
+  }
+
+  document.getElementById('btn-sandbox').onclick = () => fadeAndRedirect('./sandbox.html');
+  document.getElementById('btn-explosions').onclick = () => fadeAndRedirect('./explosionmode.html');
+  document.getElementById('btn-cube').onclick = () => fadeAndRedirect('./cubecollision.html');
+})();

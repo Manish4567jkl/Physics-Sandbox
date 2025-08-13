@@ -157,10 +157,10 @@ window.addEventListener("resize", () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-const wallHeight = 80;
-const wallThickness = 30;
+const wallHeight = 200;
+const wallThickness = 90;
 const halfGroundSize = 50;
-const ceilingY = 80; 
+const ceilingY = 200; 
 
 
 const wallPositions = [
@@ -455,21 +455,17 @@ function spawnPoofStar(x, y, z) {
 function spawnPoof(x, y, z, baseColor = 0xffe29f, scaleSpeed = 0.008, fadeSpeed = 0.01) {
   
 
-    const pastelColors = [
-    0xff6f91, // punchy pink
-    0x6fffe9, // bright mint
-    0x9a8cff, // bold lavender
-    0xffc75f, // vibrant mango
-    0x00bfff, // strong baby blue
-    0xffff66, // bright yellow
-    0xcc99ff,  // orchid haze 
-    0xffc1cc, // strawberry milk
-    0xaee6e6, // glacier mint
-    0xcbb8ff, // soft lavender
-    0xffe29f, // mango cream
-    0xa0c4ff, // baby blue
-    0xffffb3, // vanilla blush
+const pastelColors = [
+    '#FFB6C1', '#A1C4FD', '#FFD700', '#98FB98', '#FFDAC1',
+    '#E0BBE4', '#D5AAFF', '#B5EAD7', '#FF9AA2', '#FFB347',
+    '#AFF8DB', '#B28DFF', '#FFFFD1', '#FFABAB', '#FFC3A0',
+    '#F8B195', '#C1E1C1', '#FFDEAD', '#E6E6FA', '#C3FDB8',
+    '#FAD0C4', '#F1F0C0', '#D0F0C0', '#FDC5F5', '#C2F0FC',
+    '#FFE2E2', '#D9F3FF', '#FFF4E0', '#E2F0CB', '#FCE1E4',
+    '#F0E5CF', '#FFDBE9', '#DCF8C6', '#F3D1F4', '#F0C5C5',
+    '#F8E9A1', '#EAD7D1', '#C6D8D3', '#FBE4D8', '#F0F8FF'
 ];
+
 
 
     const poofGroup = new THREE.Group();

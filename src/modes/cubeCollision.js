@@ -142,10 +142,17 @@ playerBody.sleepSpeedLimit = 0;
 world.addBody(playerBody);
 
 const playerGeometry = new THREE.BoxGeometry(playerSize, playerSize, playerSize);
-const playerMaterial = new THREE.MeshStandardMaterial({color:"#ff6347"});
+const playerMaterial = new THREE.MeshStandardMaterial({
+  color: "#ff6347",           // base color
+  emissive: "#ff6347",        // glow color
+  emissiveIntensity: 1.5,     // how strong the glow is
+  roughness: 0.3,
+  metalness: 0.1
+});
 const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
 playerMesh.castShadow = true;
 scene.add(playerMesh);
+
 
 // Contact materials for player
 const playerGroundContact = new CANNON.ContactMaterial(playerMaterialPhysics, groundMaterial, {
@@ -191,7 +198,11 @@ let steeringAngle = 0;
 function updatePlayerMovement(delta) {
   if (isCharging && velocity > 0.1 && !nitroActive) {
     nitroCharge = Math.min(maxNitro, nitroCharge + chargeRate * delta);
-    playerMaterial.color.setHSL(0.05 + (nitroCharge / maxNitro) * 0.3, 1, 0.5);
+   const hue = 0.03 + (nitroCharge / maxNitro) * 0.4;   // more hue range
+   const saturation = 1;                                // full color punch
+   const lightness = 0.45 + (nitroCharge / maxNitro) * 0.25; // brighter when charged
+   playerMaterial.color.setHSL(hue, saturation, lightness);
+
   } else {
     playerMaterial.color.set("#ff6347");
   }

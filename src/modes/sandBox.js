@@ -57,7 +57,7 @@ const cubeMaterial = new CANNON.Material("cube");
 //? Contact materials
 const groundSphereContact = new CANNON.ContactMaterial(groundMaterial, sphereMaterial, {
     friction: 0.4,
-    restitution: 1.1 
+    restitution: 0.8 
 });
 const groundCubeContact = new CANNON.ContactMaterial(groundMaterial, cubeMaterial, {
     friction: 0.3,
@@ -142,16 +142,17 @@ window.addEventListener("contextmenu", (event) => {
     event.preventDefault();
     spawnSphere();
 });
-
 const pastelColors = [
-    "#FFC8DD", "#FFAFCC", "#BDE0FE", "#A2D2FF", "#CDB4DB", 
-    "#FF99C8", "#FCF6BD", "#D0F4DE", "#A9DEF9", "#E4C1F9", 
-    "#FFCF56", "#FFA69E", "#FAF3DD", "#FFDE7D", "#FEC8D8", 
-    "#F8AFA6", "#B5EAD7", "#A2E1DB", "#FF9A8B", "#E2ECE9", 
-    "#F8C8DC", "#FF6F91", "#D4A5A5", "#FFB4A2", "#FFD6A5", 
-    "#9ADE7B", "#A3C4F3", "#98DDCA", "#C3B1E1", "#F9C5D5"
-  ];
-  
+    '#FFB6C1', '#A1C4FD', '#FFD700', '#98FB98', '#FFDAC1',
+    '#E0BBE4', '#D5AAFF', '#B5EAD7', '#FF9AA2', '#FFB347',
+    '#AFF8DB', '#B28DFF', '#FFFFD1', '#FFABAB', '#FFC3A0',
+    '#F8B195', '#C1E1C1', '#FFDEAD', '#E6E6FA', '#C3FDB8',
+    '#FAD0C4', '#F1F0C0', '#D0F0C0', '#FDC5F5', '#C2F0FC',
+    '#FFE2E2', '#D9F3FF', '#FFF4E0', '#E2F0CB', '#FCE1E4',
+    '#F0E5CF', '#FFDBE9', '#DCF8C6', '#F3D1F4', '#F0C5C5',
+    '#F8E9A1', '#EAD7D1', '#C6D8D3', '#FBE4D8', '#F0F8FF'
+];
+
   
 
 function spawnCube() {

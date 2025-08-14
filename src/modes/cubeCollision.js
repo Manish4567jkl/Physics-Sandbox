@@ -313,6 +313,76 @@ function triggerCubeNuke() {
 }
 
 
+let stretchReady = true;
+
+window.addEventListener('keydown', (e) => {
+  if (e.key.toLowerCase() === 'e' && stretchReady) { // E for stretch
+    triggerCubeStretch();
+  }
+});
+
+function triggerCubeStretch() {
+  stretchReady = false;
+  const stretchDuration = 500; // ms to reach max width
+  const holdDuration = 3000;   // ms to stay stretched
+  const resetDuration = 500;   // ms to return to normal
+  const scaleMax = 2;          // max width scale
+  const originalScale = playerMesh.scale.clone();
+  const startTime = performance.now();
+
+  // Step 1: stretch
+  function stretchStep() {
+    const now = performance.now();
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / stretchDuration, 1);
+
+    playerMesh.scale.set(
+      originalScale.x + (scaleMax - 1) * progress,
+      originalScale.y,
+      originalScale.z
+    );
+
+    // Push nearby cubes gently
+    cubes.forEach(({body}) => {
+      const dir = body.position.vsub(playerBody.position);
+      const dist = dir.length();
+      if (dist < 10) { 
+        dir.normalize();
+        body.applyImpulse(dir.scale(5 * progress), body.position);
+      }
+    });
+
+    if (progress < 1) {
+      requestAnimationFrame(stretchStep);
+    } else {
+      // Hold stretch for holdDuration
+      setTimeout(() => requestAnimationFrame(resetStep), holdDuration);
+    }
+  }
+
+  // Step 2: reset back to original scale
+  function resetStep() {
+    const resetStart = performance.now();
+    function step() {
+      const now = performance.now();
+      const elapsed = now - resetStart;
+      const progress = Math.min(elapsed / resetDuration, 1);
+
+      const newX = scaleMax - (scaleMax - 1) * progress;
+      playerMesh.scale.set(newX, originalScale.y, originalScale.z);
+
+      if (progress < 1) requestAnimationFrame(step);
+      else stretchReady = true; // ready again
+    }
+    step();
+  }
+
+  stretchStep();
+}
+
+
+
+
 
 const clock = new THREE.Clock();
 function animate() {

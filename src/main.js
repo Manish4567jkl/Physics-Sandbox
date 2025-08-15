@@ -53,11 +53,11 @@ function spawnBall(x, y) {
 }
 
 // Glowing ball with trail (right click)
-function spawnGlowyBall(x, y) {
+function spawnBouncyBall(x, y) {
     const radius = Math.random() * 10 + 15;
     const color = randomPastelColor();
     const ball = Bodies.circle(x, y, radius, {
-        restitution: 1.6,
+        restitution: 1.7,
         friction: 0.00005,
         density: 0.0005,
         render: {
@@ -70,17 +70,7 @@ function spawnGlowyBall(x, y) {
     trails.push({ body: ball, color });
 }
 
-// Trail renderer (after render step)
-Matter.Events.on(render, 'afterRender', () => {
-    const context = render.context;
-    for (const trail of trails) {
-        const { position } = trail.body;
-        context.beginPath();
-        context.arc(position.x, position.y, 8, 0, 2 * Math.PI);
-        context.fillStyle = trail.color + '55';
-        context.fill();
-    }
-});
+
 
 // Spawn 30 balls on load
 for (let i = 0; i < 30; i++) {
@@ -91,7 +81,7 @@ for (let i = 0; i < 30; i++) {
 document.addEventListener("mousedown", (event) => {
     if (event.button === 2) { // Right click
         event.preventDefault();
-        spawnGlowyBall(event.clientX, event.clientY);
+        spawnBouncyBall(event.clientX, event.clientY);
     } else if (event.button === 0) { // Left click
         spawnBall(event.clientX, event.clientY);
     }
@@ -142,7 +132,7 @@ function createClouds(count) {
         cloudContainer.appendChild(cloud);
     }
 }
-createClouds(8);
+createClouds(15);
 
 // Background color animation
 let time = 0;

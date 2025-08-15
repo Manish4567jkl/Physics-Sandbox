@@ -4,9 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Collision</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <canvas class="cubeexp"></canvas>
+<body class="w-screen h-screen overflow-hidden bg-gray-100">
+    <div class="relative w-full h-full">
+        <canvas class="cubeexp block w-full h-full"></canvas>
+
+        <!-- Info Panel (Top Left) -->
+        <div class="absolute top-4 left-4 p-2 transform skew-x-[-10deg] bg-sky-300 shadow-md border border-sky-400 rounded-md">
+            <div class="transform skew-x-[10deg] text-white font-semibold text-sm leading-tight">
+                <div class="mb-1"> Left Shift to Charge</div>
+                <div class="mb-1"> R to  Nuke</div>
+                <div>E to  Stretch</div>
+            </div>
+        </div>
+    </div>
+
     <script src="../modes/cubeCollision.js" type="module"></script>
 </body>
 </html>

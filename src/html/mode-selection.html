@@ -71,6 +71,29 @@
   .sandbox { background-color: #fbb6ce; border-color: #f472b6; }
   .explosions { background-color: #fde68a; border-color: #fbbf24; }
   .cube-collisions { background-color: #c4b5fd; border-color: #a78bfa; }
+
+  /* Info panel */
+  #info-panel {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #86efac; /* soft green */
+    border: 1px solid #4ade80;
+    padding: 10px 16px;
+    border-radius: 0.5rem;
+    transform: skewX(-10deg);
+    box-shadow: 0 4px 6px rgb(0 0 0 / 0.1);
+    z-index: 10;
+    max-width: 200px;
+  }
+  #info-panel div {
+    transform: skewX(10deg);
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: white;
+    text-align: center;
+    line-height: 1.2;
+  }
 </style>
 </head>
 <body>
@@ -99,6 +122,14 @@
        onclick="window.location.href='./cubecollision.html'"
        onkeydown="if(event.key==='Enter') window.location.href='./cubecollision.html'">
     <div>CUBE COLLISIONS</div>
+  </div>
+</div>
+
+<!-- Info Panel -->
+<div id="info-panel">
+  <div>
+    Click to spawn shapes<br>
+    Hold and drag to move them
   </div>
 </div>
 

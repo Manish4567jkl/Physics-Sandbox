@@ -4,12 +4,20 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title> Sandbox</title>
+    <title>Sandbox</title>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="w-screen h-screen overflow-hidden bg-blue-100">
     <div id="sandbox-container" class="relative w-full h-full">
       <canvas class="threejs block w-full h-full"></canvas>
+
+      <!-- Info Panel (Top Left) -->
+      <div class="absolute top-4 left-4 p-2 transform skew-x-[-10deg] bg-purple-300 shadow-md border border-purple-400 rounded-md">
+        <div class="transform skew-x-[10deg] text-gray-900 font-semibold text-sm leading-tight">
+          <div class="mb-1">🖱️ Left Click → Spawn Cube</div>
+          <div>🖱️ Right Click → Spawn Sphere</div>
+        </div>
+      </div>
 
       <!-- UI Panel -->
       <div id="ui-panel" class="absolute top-4 right-4 p-2 w-56 flex flex-col space-y-2">

@@ -111,67 +111,99 @@ function createCube(pos) {
 
 // Spawn more cubes scattered around with spacing
 
-
+// --- CUBES SPAWN ---
 const planeSize = 200; 
 const cubeCount = 90;   
 const cubePositions = [];
 
 for (let i = 0; i < cubeCount; i++) {
-  const x = (Math.random() - 0.5) * planeSize; // -100 to 100
-  const z = (Math.random() - 0.5) * planeSize; // -100 to 100
+  const x = (Math.random() - 0.5) * planeSize;
+  const z = (Math.random() - 0.5) * planeSize;
   const y = 0; 
 
   cubePositions.push(new THREE.Vector3(x, y, z));
 }
 cubePositions.forEach(pos => createCube(pos));
 
-// Player setup
-const playerSize = 3;
+// --- PLAYER SETUP ---
+const playerSize = 5; // bigger = more dominating
 const playerMaterialPhysics = new CANNON.Material('playerMaterial');
 const playerShape = new CANNON.Box(new CANNON.Vec3(playerSize/2, playerSize/2, playerSize/2));
 const playerBody = new CANNON.Body({
-  mass: 7,
+  mass: 50,                 // tank-like weight
   shape: playerShape,
   material: playerMaterialPhysics,
   position: new CANNON.Vec3(0, playerSize/2, 0),
-  linearDamping: 0.4,
-  angularDamping: 0.7,
+  linearDamping: 0.05,      // almost no slowdown
+  angularDamping: 0.05,     // natural spin
   allowSleep: false,
 });
 playerBody.sleepSpeedLimit = 0;
 world.addBody(playerBody);
 
+// Player mesh
 const playerGeometry = new THREE.BoxGeometry(playerSize, playerSize, playerSize);
 const playerMaterial = new THREE.MeshStandardMaterial({
-  color: "#ff6347",           // base color
-  emissive: "#ff6347",        // glow color
-  emissiveIntensity: 1.5,     // how strong the glow is
-  roughness: 0.3,
-  metalness: 0.1
+  color: "#ff6347",
+  emissive: "#ff6347",
+  emissiveIntensity: 2,
+  roughness: 0.2,
+  metalness: 0.2
 });
 const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
 playerMesh.castShadow = true;
 scene.add(playerMesh);
 
-
-// Contact materials for player
-const playerGroundContact = new CANNON.ContactMaterial(playerMaterialPhysics, groundMaterial, {
-  friction: 0.4,
-  restitution: 0.5,
-});
+// Contact materials for max dramatic effect
+const playerGroundContact = new CANNON.ContactMaterial(
+  playerMaterialPhysics, 
+  groundMaterial, 
+  {
+    friction: 1.0,       // grips like glue
+    restitution: 0.8,    // bounce for cinematic effect
+  }
+);
 world.addContactMaterial(playerGroundContact);
 
-const playerCubeContact = new CANNON.ContactMaterial(playerMaterialPhysics, defaultMaterial, {
-  friction: 0.5,
-  restitution: 0.3,
-});
+const playerCubeContact = new CANNON.ContactMaterial(
+  playerMaterialPhysics, 
+  defaultMaterial, 
+  {
+    friction: 0.8,
+    restitution: 1.0,    // cubes fly off like crazy
+  }
+);
 world.addContactMaterial(playerCubeContact);
+
+// Super dramatic collision impulse
+playerBody.addEventListener("collide", (e) => {
+  const other = e.body;
+  if (other.mass > 0) { 
+    const forceMagnitude = 200; // insane push
+    const force = new CANNON.Vec3().copy(e.contact.ni).scale(forceMagnitude);
+    other.applyImpulse(force, e.contact.rj);
+  }
+});
+
+// Optional: add a bit of torque so cubes spin dramatically
+playerBody.addEventListener("collide", (e) => {
+  const other = e.body;
+  if (other.mass > 0) {
+    const torqueForce = new CANNON.Vec3(
+      (Math.random() - 0.5) * 50,
+      (Math.random() - 0.5) * 50,
+      (Math.random() - 0.5) * 50
+    );
+    other.applyTorque(torqueForce);
+  }
+});
+
 
 // Controls & Nitro setup
 const keysPressed = {};
 let isCharging = false;
 let nitroCharge = 0;
-const maxNitro = 200;
+const maxNitro = 150;
 const chargeRate = 90;
 let nitroActive = false;
 
@@ -258,7 +290,7 @@ function triggerCubeNuke() {
   nukeReady = false;
 
   const nukeRadius = 30;
-  const nukeForce = 1500;
+  const nukeForce = 2000;
   const chargeDuration = 1500; // ms
   const scaleMax = 1.5;
   const startTime = performance.now();

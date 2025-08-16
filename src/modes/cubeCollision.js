@@ -42,7 +42,7 @@ controls.maxDistance = 500;
 
 // Ground mesh + physics
 const groundMesh = new THREE.Mesh(
-  new THREE.PlaneGeometry(200, 200),
+  new THREE.PlaneGeometry(400, 400),
   new THREE.MeshStandardMaterial({color:"#fdf0d5", side: THREE.DoubleSide})
 );
 groundMesh.rotation.x = -Math.PI/2;
@@ -58,7 +58,7 @@ groundBody.quaternion.setFromEuler(-Math.PI/2, 0, 0);
 world.addBody(groundBody);
 
 // Grid helper and lights
-scene.add(new THREE.GridHelper(200, 200));
+scene.add(new THREE.GridHelper(400, 400));
 
 const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
 scene.add(ambientLight);
@@ -112,18 +112,57 @@ function createCube(pos) {
 // Spawn more cubes scattered around with spacing
 
 // --- CUBES SPAWN ---
-const planeSize = 200; 
-const cubeCount = 90;   
+// --- Plane & Initial Cubes ---
+const planeSize = 400;  
+const cubeCount = 200;   
 const cubePositions = [];
 
-for (let i = 0; i < cubeCount; i++) {
-  const x = (Math.random() - 0.5) * planeSize;
-  const z = (Math.random() - 0.5) * planeSize;
-  const y = 0; 
+// Function to generate a random position with some cluster logic
+function randomCubePosition() {
+  const clusterChance = Math.random();
+  let x, z;
 
-  cubePositions.push(new THREE.Vector3(x, y, z));
+  if (clusterChance < 0.3) {
+    x = (Math.random() - 0.5) * 50; // cluster near center
+    z = (Math.random() - 0.5) * 50;
+  } else if (clusterChance < 0.6) {
+    const signX = Math.random() < 0.5 ? -1 : 1;
+    const signZ = Math.random() < 0.5 ? -1 : 1;
+    x = signX * (Math.random() * 100 + 50);
+    z = signZ * (Math.random() * 100 + 50);
+  } else {
+    x = (Math.random() - 0.5) * planeSize;
+    z = (Math.random() - 0.5) * planeSize;
+  }
+
+  const y = Math.random() * 5; // slight height variation
+  return new THREE.Vector3(x, y, z);
 }
-cubePositions.forEach(pos => createCube(pos));
+
+// Create initial cubes
+for (let i = 0; i < cubeCount; i++) {
+  const pos = randomCubePosition();
+  if (Math.random() < 0.1) {
+    createCube({...pos, sizeOverride: THREE.MathUtils.randFloat(8, 15)}); // 10% chance giant cube
+  } else {
+    createCube(pos);
+  }
+}
+
+// --- Dynamic Cube Spawner ---
+// Spawns a few cubes every few seconds
+function spawnDynamicCubes(count = 5) {
+  for (let i = 0; i < count; i++) {
+    const pos = randomCubePosition();
+    createCube(pos);
+  }
+}
+
+// Spawn cubes every 3 seconds
+setInterval(() => {
+  spawnDynamicCubes(5 + Math.floor(Math.random() * 5)); // spawn 5-10 cubes
+}, 7000);
+
 
 // --- PLAYER SETUP ---
 const playerSize = 5; // bigger = more dominating

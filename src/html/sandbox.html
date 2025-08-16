@@ -12,91 +12,173 @@
       <canvas class="threejs block w-full h-full"></canvas>
 
       <!-- Info Panel (Top Left) -->
-      <div class="absolute top-4 left-4 p-2 transform skew-x-[-10deg] bg-purple-300 shadow-md border border-purple-400 rounded-md">
-        <div class="transform skew-x-[10deg] text-gray-900 font-semibold text-sm leading-tight">
-          <div class="mb-1">🖱️ Left Click → Spawn Cube</div>
-          <div>🖱️ Right Click → Spawn Sphere</div>
+      <div
+        class="absolute top-4 left-4 p-2 transform skew-x-[-10deg] bg-purple-300 shadow-md border border-purple-400 rounded-md"
+      >
+        <div
+          class="transform skew-x-[10deg] text-white font-semibold text-sm leading-tight"
+        >
+          <div class="mb-1"> Left Click → Spawn Cube</div>
+          <div>Right Click → Spawn Sphere</div>
         </div>
       </div>
 
-      <!-- UI Panel -->
-      <div id="ui-panel" class="absolute top-4 right-4 p-2 w-56 flex flex-col space-y-2">
-
+      <!-- UI Panel (Top Right) -->
+      <div
+        id="ui-panel"
+        class="absolute top-4 right-4 p-2 w-56 flex flex-col space-y-2"
+      >
         <!-- Gravity Control Box -->
-        <div class="p-2 transform skew-x-[-10deg] bg-rose-300 shadow-md border border-rose-400 rounded-md">
+        <div
+          class="p-2 transform skew-x-[-10deg] bg-rose-300 shadow-md border border-rose-400 rounded-md"
+        >
           <div class="flex flex-col transform skew-x-[10deg]">
             <div class="flex justify-between items-center">
-              <label for="gravity-slider" class="text-xs font-bold text-gray-800 uppercase tracking-wide">
+              <label
+                for="gravity-slider"
+                class="text-xs font-bold text-gray-800 uppercase tracking-wide"
+              >
                 Gravity
               </label>
-              <span id="gravity-value" class="text-xs font-semibold text-gray-900 px-2 py-0.5 rounded-md shadow-sm 
-                   bg-rose-400 border border-rose-500">
+              <span
+                id="gravity-value"
+                class="text-xs font-semibold text-gray-900 px-2 py-0.5 rounded-md shadow-sm 
+                   bg-rose-400 border border-rose-500"
+              >
                 -9.81 m/s²
               </span>
             </div>
-            <input id="gravity-slider" type="range" min="-20" max="20" step="0.1" value="-9.81"
+            <input
+              id="gravity-slider"
+              type="range"
+              min="-20"
+              max="20"
+              step="0.1"
+              value="-9.81"
               class="w-full h-1.5 bg-gray-300 rounded-full appearance-none cursor-pointer transition-all 
-                     accent-rose-500 outline-none focus:ring-2 focus:ring-rose-400">
+                     accent-rose-500 outline-none focus:ring-2 focus:ring-rose-400"
+            />
           </div>
         </div>
 
         <!-- Sphere Mass Control Box -->
-        <div class="p-2 transform skew-x-[-10deg] bg-blue-300 shadow-md border border-blue-400 rounded-md">
+        <div
+          class="p-2 transform skew-x-[-10deg] bg-blue-300 shadow-md border border-blue-400 rounded-md"
+        >
           <div class="flex flex-col transform skew-x-[10deg]">
             <div class="flex justify-between items-center">
-              <label for="sphere-mass-slider" class="text-xs font-bold text-gray-800 uppercase tracking-wide">
+              <label
+                for="sphere-mass-slider"
+                class="text-xs font-bold text-gray-800 uppercase tracking-wide"
+              >
                 Sphere Mass
               </label>
-              <span id="sphere-mass-value" class="text-xs font-semibold text-gray-900 px-2 py-0.5 rounded-md shadow-sm 
-                     bg-blue-400 border border-blue-500">
+              <span
+                id="sphere-mass-value"
+                class="text-xs font-semibold text-gray-900 px-2 py-0.5 rounded-md shadow-sm 
+                     bg-blue-400 border border-blue-500"
+              >
                 1 kg
               </span>
             </div>
-            <input id="sphere-mass-slider" type="range" min="0.1" max="10" step="0.1" value="1"
+            <input
+              id="sphere-mass-slider"
+              type="range"
+              min="0.1"
+              max="10"
+              step="0.1"
+              value="1"
               class="w-full h-1.5 bg-gray-300 rounded-full appearance-none cursor-pointer transition-all 
-                     accent-blue-500 outline-none focus:ring-2 focus:ring-blue-400">
+                     accent-blue-500 outline-none focus:ring-2 focus:ring-blue-400"
+            />
           </div>
         </div>
 
         <!-- Cube Mass Control Box -->
-        <div class="p-2 transform skew-x-[-10deg] bg-green-300 shadow-md border border-green-400 rounded-md">
+        <div
+          class="p-2 transform skew-x-[-10deg] bg-green-300 shadow-md border border-green-400 rounded-md"
+        >
           <div class="flex flex-col transform skew-x-[10deg]">
             <div class="flex justify-between items-center">
-              <label for="cube-mass-slider" class="text-xs font-bold text-gray-800 uppercase tracking-wide">
+              <label
+                for="cube-mass-slider"
+                class="text-xs font-bold text-gray-800 uppercase tracking-wide"
+              >
                 Cube Mass
               </label>
-              <span id="cube-mass-value" class="text-xs font-semibold text-gray-900 px-2 py-0.5 rounded-md shadow-sm 
-                     bg-green-400 border border-green-500">
+              <span
+                id="cube-mass-value"
+                class="text-xs font-semibold text-gray-900 px-2 py-0.5 rounded-md shadow-sm 
+                     bg-green-400 border border-green-500"
+              >
                 1 kg
               </span>
             </div>
-            <input id="cube-mass-slider" type="range" min="1" max="100" step="1" value="1"
+            <input
+              id="cube-mass-slider"
+              type="range"
+              min="1"
+              max="100"
+              step="1"
+              value="1"
               class="w-full h-1.5 bg-gray-300 rounded-full appearance-none cursor-pointer transition-all 
-                     accent-green-500 outline-none focus:ring-2 focus:ring-green-400">
+                     accent-green-500 outline-none focus:ring-2 focus:ring-green-400"
+            />
           </div>
         </div>
 
         <!-- Wind Control Box -->
-        <div class="p-2 transform skew-x-[-10deg] bg-yellow-300 shadow-md border border-yellow-400 rounded-md">
+        <div
+          class="p-2 transform skew-x-[-10deg] bg-yellow-300 shadow-md border border-yellow-400 rounded-md"
+        >
           <div class="flex flex-col transform skew-x-[10deg]">
             <div class="flex justify-between items-center">
-              <label for="wind-slider" class="text-xs font-bold text-gray-800 uppercase tracking-wide">
+              <label
+                for="wind-slider"
+                class="text-xs font-bold text-gray-800 uppercase tracking-wide"
+              >
                 Wind Force
               </label>
-              <span id="wind-value" class="text-xs font-semibold text-gray-900 px-2 py-0.5 rounded-md shadow-sm 
-                     bg-yellow-400 border border-yellow-500">
+              <span
+                id="wind-value"
+                class="text-xs font-semibold text-gray-900 px-2 py-0.5 rounded-md shadow-sm 
+                     bg-yellow-400 border border-yellow-500"
+              >
                 0 m/s²
               </span>
             </div>
-            <input id="wind-slider" type="range" min="-10" max="10" step="0.1" value="0"
+            <input
+              id="wind-slider"
+              type="range"
+              min="-10"
+              max="10"
+              step="0.1"
+              value="0"
               class="w-full h-1.5 bg-gray-300 rounded-full appearance-none cursor-pointer transition-all 
-                     accent-yellow-500 outline-none focus:ring-2 focus:ring-yellow-400">
+                     accent-yellow-500 outline-none focus:ring-2 focus:ring-yellow-400"
+            />
           </div>
         </div>
+      </div>
 
+      <!-- Back Button (Bottom Left) -->
+      <div
+        class="absolute bottom-4 left-4 p-2 transform skew-x-[-10deg] bg-pink-300 shadow-md border border-pink-400 rounded-md"
+      >
+        <button
+          id="back-button"
+          class="transform skew-x-[10deg] px-4 py-1 font-semibold text-white text-sm">
+           Back 
+        </button>
       </div>
     </div>
 
     <script type="module" src="/src/modes/sandBox.js"></script>
+    <script>
+  // Back button functionality
+  document.getElementById("back-button").addEventListener("click", () => {
+    window.location.href = "/src/html/mode-selection.html"; 
+  });
+</script>
   </body>
 </html>

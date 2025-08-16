@@ -13,13 +13,30 @@
         <!-- Info Panel (Top Left) -->
         <div class="absolute top-4 left-4 p-2 transform skew-x-[-10deg] bg-sky-300 shadow-md border border-sky-400 rounded-md">
             <div class="transform skew-x-[10deg] text-white font-semibold text-sm leading-tight">
+                
+                <div class="mb-1"> WASD to move</div>
                 <div class="mb-1"> Left Shift to Charge</div>
-                <div class="mb-1"> R to  Nuke</div>
-                <div>E to  Stretch</div>
+                <div class="mb-1"> R to Nuke</div>
+                <div>E to Stretch</div>
             </div>
+        </div>
+
+        <!-- Back Button (Top Right) -->
+        <div class="absolute top-4 right-4 p-2 transform skew-x-[-10deg] bg-pink-300 shadow-md border border-pink-400 rounded-md">
+            <button
+                id="back-button"
+                class="transform skew-x-[10deg] px-4 py-1 font-semibold text-white text-sm ">
+                 Back 
+            </button>
         </div>
     </div>
 
     <script src="../modes/cubeCollision.js" type="module"></script>
+    <script>
+
+     document.getElementById("back-button").addEventListener("click", () => {
+     window.location.href = "/src/html/mode-selection.html"; 
+        });
+    </script>
 </body>
 </html>

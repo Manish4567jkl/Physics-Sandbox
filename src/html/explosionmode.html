@@ -35,14 +35,16 @@
 <!-- Main Explosion Canvas -->
 <canvas class="explosion w-screen h-screen block"></canvas>
 
-<div class="absolute top-4 right-4 z-50 max-w-xl">
-  <div class="flex space-x-3 mb-3">
+<!-- Buttons & Info Panel -->
+<div class="absolute top-4 right-4 z-50 max-w-xl flex flex-col space-y-3">
 
+  <!-- Top Right Buttons -->
+  <div class="flex space-x-3">
     <div class="p-2 transform skew-x-[-10deg] bg-rose-300 shadow-md border border-rose-400 rounded-md">
       <div class="transform skew-x-[10deg]">
         <button id="reset-button"
-          class="text-xs font-bold text-gray-800 uppercase tracking-wide px-4 py-1 bg-rose-400 border border-rose-500 
-                 rounded-md shadow-sm hover:bg-rose-500 transition-colors duration-150 active:scale-95">
+          class="text-xs font-bold text-white uppercase tracking-wide px-4 py-1 
+                ">
           Reset Scene
         </button>
       </div>
@@ -51,14 +53,15 @@
     <div class="p-2 transform skew-x-[-10deg] bg-blue-300 shadow-md border border-blue-400 rounded-md cursor-pointer select-none">
       <div class="transform skew-x-[10deg]">
         <button id="toggle-lighting"
-          class="text-xs font-bold text-gray-900 uppercase tracking-wide px-4 py-1 bg-blue-400 border border-blue-500 
-                 rounded-md shadow-sm hover:bg-blue-500 transition-colors duration-150 active:scale-95">
+          class="text-xs font-bold text-white uppercase tracking-wide px-4 py-1  
+                 ">
           Toggle Lighting
         </button>
       </div>
     </div>
   </div>
 
+  <!-- Info Panel -->
   <div class="p-3 transform skew-x-[-10deg] bg-rose-100 border border-rose-300 rounded-md shadow-inner text-rose-700 text-xs font-mono leading-relaxed select-none max-w-xs">
     <div class="transform skew-x-[10deg] space-y-1">
       <p><strong>Shift + Scroll</strong>: Increase explosion radius</p>
@@ -68,13 +71,30 @@
   </div>
 </div>
 
-<!-- Matter.js Loader Script -->
-<script type="module" src="../utils/loader.js">
+<!-- Back Button Top-Left -->
+<div class="absolute top-4 left-4 z-50 max-w-xl">
+  <div class="p-2 transform skew-x-[-10deg] bg-green-300 shadow-md border border-green-400 rounded-md cursor-pointer select-none">
+    <div class="transform skew-x-[10deg]">
+      <button id="back-button"
+        class="text-xs font-bold text-white uppercase tracking-wide px-4 py-1">
+        Back
+      </button>
+    </div>
+  </div>
+</div>
 
-</script>
+<!-- Matter.js Loader Script -->
+<script type="module" src="../utils/loader.js"></script>
 
 <!-- Main Explosion Script -->
 <script type="module" src="../modes/explosion.js"></script>
+
+<script>
+  // Back button functionality
+  document.getElementById("back-button").addEventListener("click", () => {
+    window.location.href = "/src/html/mode-selection.html"; 
+  });
+</script>
 
 </body>
 </html>

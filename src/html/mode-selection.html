@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Interactive Pastel Chaos</title>
+<link rel="icon" type="image/svg+xml" 
+  href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23f472b6"><path d="M12.378 1.602a.75.75 0 0 0-.756 0L3 6.632l9 5.25 9-5.25-8.622-5.03ZM21.75 7.93l-9 5.25v9l8.628-5.032a.75.75 0 0 0 .372-.648V7.93ZM11.25 22.18v-9l-9-5.25v8.57a.75.75 0 0 0 .372.648l8.628 5.033Z"/></svg>'>
+
+<title>Mode Selection</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   html, body {
@@ -94,6 +97,33 @@
     text-align: center;
     line-height: 1.2;
   }
+
+  /* Back button */
+  #back-button {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: #60a5fa; /* soft blue */
+    border: 1px solid #3b82f6;
+    padding: 10px 16px;
+    border-radius: 0.5rem;
+    transform: skewX(-10deg);
+    box-shadow: 0 4px 6px rgb(0 0 0 / 0.1);
+    z-index: 10;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.3s ease;
+  }
+  #back-button div {
+    transform: skewX(10deg);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: white;
+    text-align: center;
+  }
+  #back-button:hover {
+    transform: skewX(-10deg) scale(1.05);
+    background-color: #3b82f6;
+  }
 </style>
 </head>
 <body>
@@ -105,6 +135,7 @@
 
 <div id="matter-container"></div>
 
+<!-- Mode buttons -->
 <div id="ui" role="navigation" aria-label="Mode selector">
   <div class="mode-button sandbox" tabindex="0" role="button"
        onclick="window.location.href='./sandbox.html'"
@@ -131,6 +162,13 @@
     Click to spawn shapes<br>
     Hold and drag to move them
   </div>
+</div>
+
+<!-- Back Button -->
+<div id="back-button" role="button" tabindex="0"
+     onclick="window.location.href='./index.html'"
+     onkeydown="if(event.key==='Enter') window.location.href='./index.html'">
+  <div>BACK</div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>

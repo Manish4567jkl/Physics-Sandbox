@@ -631,14 +631,28 @@ function triggerExplosion(strength = 80) {
 
 
 
+let lastExplosionTime = 0;
+const explosionCooldown = 2000; // 2 seconds in ms
+
 window.addEventListener('mousedown', (e) => {
+    const now = Date.now();
+
+    if (now - lastExplosionTime < explosionCooldown) {
+        // Still cooling down, ignore
+        return;
+    }
+
     if (e.button === 0) {
-        triggerExplosion(100); 
+        triggerExplosion(100); // big boom
+        lastExplosionTime = now;
     } else if (e.button === 2) {
-        triggerExplosion(30); 
+        triggerExplosion(30);  // small boom
+       
     }
 });
-window.addEventListener('contextmenu', e => e.preventDefault()); 
+
+window.addEventListener('contextmenu', e => e.preventDefault());
+
 
 const initialPositions = boxes.map(({ body }) => body.position.clone());
 
